@@ -1,7 +1,10 @@
 package com.example.mahdiye.csns;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -58,6 +61,14 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
 
+            /* check if user is logged in */
+            final String TOKEN = getSharedValues(getString(R.string.user_token_key), getActivity());
+
+            if(TOKEN == null) {
+                /* redirect user to login */
+                startLoginActivity();
+            }
+
             /* Create mock data for main view */
             String[] mainList = {"Surveys", "News", "Mailing Lists", "File Manager"};
             mainArrayAdapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_main, R.id.main_listview_item, Arrays.asList(mainList));
@@ -86,6 +97,23 @@ public class MainActivity extends AppCompatActivity {
             });
 
             return rootView;
+        }
+
+        public void startLoginActivity(){
+            Intent intent = new Intent(getActivity(), LoginActivity.class);
+            startActivity(intent);
+        }
+
+        public void setSharedValues(String key, String value, Context context) {
+            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
+            SharedPreferences.Editor editor = prefs.edit();
+            editor.putString(key, value);
+            editor.commit();
+        }
+
+        public String getSharedValues(String key, Context context) {
+            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
+            return preferences.getString(key, null);
         }
     }
 }

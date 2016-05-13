@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="10dp">
+
+    <TextView
+        android:id="@+id/survey_detail_question_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="@dimen/question_textsize"
+        android:paddingTop="@dimen/question_top_padding"
+        android:paddingBottom="@dimen/question_bottom_padding"
+        android:paddingLeft="@dimen/question_left_padding"
+        android:paddingRight="@dimen/question_right_padding"/>
+
+    <!-- 10 checkboxes are added here, they're all invisible at startup -->
+
+    <CheckBox
+        android:id="@+id/survey_detail_checkbox_0"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <CheckBox
+        android:id="@+id/survey_detail_checkbox_1"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <CheckBox
+        android:id="@+id/survey_detail_checkbox_2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <CheckBox
+        android:id="@+id/survey_detail_checkbox_3"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <CheckBox
+        android:id="@+id/survey_detail_checkbox_4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <CheckBox
+        android:id="@+id/survey_detail_checkbox_5"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <CheckBox
+        android:id="@+id/survey_detail_checkbox_6"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <CheckBox
+        android:id="@+id/survey_detail_checkbox_7"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <CheckBox
+        android:id="@+id/survey_detail_checkbox_8"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+    <CheckBox
+        android:id="@+id/survey_detail_checkbox_9"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:visibility="gone"/>
+
+</LinearLayout>

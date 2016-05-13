@@ -5,4 +5,6 @@
     <string name="title_activity_survey">Surveys</string>
     <string name="title_activity_survey_detail">Survey</string>
     <string name="button_survey_submit">Submit</string>
+    <string name="title_activity_login">Login</string>
+    <string name="user_token_key">USER_TOKEN</string>
 </resources>
