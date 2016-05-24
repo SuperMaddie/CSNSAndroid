@@ -7,4 +7,6 @@
     <string name="button_survey_submit">Submit</string>
     <string name="title_activity_login">Login</string>
     <string name="user_token_key">USER_TOKEN</string>
+    <string name="title_activity_survey_description">Survey Description</string>
+    <string name="action_submit_survey">Submit Survey</string>
 </resources>

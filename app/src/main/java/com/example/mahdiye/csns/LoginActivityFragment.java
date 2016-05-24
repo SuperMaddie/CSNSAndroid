@@ -1,11 +1,8 @@
 package com.example.mahdiye.csns;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -14,8 +11,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
 
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -54,7 +50,8 @@ public class LoginActivityFragment extends Fragment {
                 String password = passwordEditText.getText().toString();
 
                 /* check user credentials */
-                if(validateUser(username, password)) {
+                validateUser(username, password);
+                if(userValid) {
                     startMainActivity();
                 }else {
                     /* show error and stay in login */
@@ -69,10 +66,9 @@ public class LoginActivityFragment extends Fragment {
         getActivity().finish();
     }
 
-    public boolean validateUser(String username, String password) {
+    public void validateUser(String username, String password) {
         AuthenticationTask authTask = new AuthenticationTask();
         authTask.execute(username, password);
-        return userValid;
     }
 
     public class AuthenticationTask extends AsyncTask<String, Void, Void> {
@@ -83,7 +79,7 @@ public class LoginActivityFragment extends Fragment {
         protected Void doInBackground(String... params) {
             HttpURLConnection connection = null;
             BufferedReader reader = null;
-            String jsonString = null;
+            String token = null;
 
             try {
                 Uri buildUri = Uri.parse(BuildConfig.LOGIN_BASE_URL).buildUpon()
@@ -93,23 +89,27 @@ public class LoginActivityFragment extends Fragment {
                 URL url = new URL(buildUri.toString());
 
                 connection = (HttpURLConnection)url.openConnection();
-                connection.setRequestMethod("POST");
+                connection.setRequestMethod("GET");
                 connection.connect();
 
-                InputStream is = connection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if(is != null) {
-                    reader = new BufferedReader(new InputStreamReader(is));
-                    String line;
+                int status = connection.getResponseCode();
+                if(status == HttpURLConnection.HTTP_OK) {
+                    InputStream is = connection.getInputStream();
+                    StringBuffer buffer = new StringBuffer();
+                    if(is != null) {
+                        reader = new BufferedReader(new InputStreamReader(is));
+                        String line;
 
-                    while((line = reader.readLine()) != null) {
-                        buffer.append(line + "\n");
+                        buffer.append(reader.readLine());
                     }
-                }
 
-                if(buffer.length() > 0){
-                    jsonString = buffer.toString();
-                    saveUserToken(jsonString);
+                    if(buffer.length() > 0){
+                        token = buffer.toString();
+                        saveUserToken(token);
+                    }
+                }else{
+                    /* go back to login page */
+                    Log.e(LOG_TAG, "status : " + status);
                 }
 
             } catch (MalformedURLException e) {
@@ -131,33 +131,10 @@ public class LoginActivityFragment extends Fragment {
             return null;
         }
 
-        public void saveUserToken(String jsonString){
-            try {
-                JSONObject jsonObject = new JSONObject(jsonString);
-                if(jsonObject.getString("status").equals("200")) {
-                    setSharedValues(getString(R.string.user_token_key), jsonObject.getString("token"), getContext());
-
-                    /*SharedPreferences sharedPreferences = getActivity().getPreferences(Context.MODE_PRIVATE);
-                    SharedPreferences.Editor editor = sharedPreferences.edit();
-                    editor.putString(getString(R.string.user_token_key), jsonObject.getString("token"));
-                    editor.commit();*/
-                    userValid = true;
-                }
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "Error Parsing JSON", e);
-            }
+        public void saveUserToken(String token){
+            SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), token, getContext());
+            userValid = true;
         }
 
-        public void setSharedValues(String key, String value, Context context) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString(key, value);
-            editor.commit();
-        }
-
-        public String getSharedValues(String key, Context context) {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-            return preferences.getString(key, null);
-        }
     }
 }

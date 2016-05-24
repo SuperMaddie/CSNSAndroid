@@ -1,10 +1,7 @@
 package com.example.mahdiye.csns;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -17,6 +14,8 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
+
+import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
 
 import java.util.Arrays;
 
@@ -62,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
                                  Bundle savedInstanceState) {
 
             /* check if user is logged in */
-            final String TOKEN = getSharedValues(getString(R.string.user_token_key), getActivity());
+            final String TOKEN = SharedPreferencesUtil.getSharedValues(getString(R.string.user_token_key), getActivity());
 
             if(TOKEN == null) {
                 /* redirect user to login */
@@ -104,16 +103,5 @@ public class MainActivity extends AppCompatActivity {
             startActivity(intent);
         }
 
-        public void setSharedValues(String key, String value, Context context) {
-            SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-            SharedPreferences.Editor editor = prefs.edit();
-            editor.putString(key, value);
-            editor.commit();
-        }
-
-        public String getSharedValues(String key, Context context) {
-            SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-            return preferences.getString(key, null);
-        }
     }
 }

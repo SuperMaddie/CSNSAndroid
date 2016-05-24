@@ -1,12 +1,9 @@
 package com.example.mahdiye.csns;
 
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,8 +14,10 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.example.mahdiye.csns.survey.ChoiceQuestion;
+import com.example.mahdiye.csns.survey.Section;
 import com.example.mahdiye.csns.survey.Survey;
 import com.example.mahdiye.csns.survey.TextQuestion;
+import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -48,7 +47,7 @@ public class SurveyActivityFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         /* Call API here to get survey data */
-        final String TOKEN = getSharedValues(getString(R.string.user_token_key), getActivity());
+        final String TOKEN = SharedPreferencesUtil.getSharedValues(getString(R.string.user_token_key), getActivity());
 
         String DEPT = "cs";
         updateSurveys(DEPT, TOKEN);
@@ -63,7 +62,7 @@ public class SurveyActivityFragment extends Fragment {
         listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Intent intent = new Intent(getActivity(), SurveyDetailActivity.class);
+                Intent intent = new Intent(getActivity(), SurveyDescriptionActivity.class);
                 intent.putExtra("survey", surveys.get(position));
                 startActivity(intent);
             }
@@ -89,28 +88,43 @@ public class SurveyActivityFragment extends Fragment {
 
             try{
                 Uri buildUri = Uri.parse(BuildConfig.SURVEYS_BASE_URL).buildUpon()
-                        .appendQueryParameter("dept", params[0])
-                        .appendQueryParameter("token", params[1]).build();
+                        .appendQueryParameter("dept", params[0]).build();
 
                 URL url = new URL(buildUri.toString());
 
                 connection = (HttpURLConnection)url.openConnection();
+                connection.setRequestProperty("Authorization", "Bearer " + params[1]);
                 connection.setRequestMethod("GET");
                 connection.connect();
 
-                InputStream is = connection.getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                if(is != null){
-                    reader = new BufferedReader(new InputStreamReader(is));
+                int status = connection.getResponseCode();
+                Log.e("status", ""+status);
 
-                    String line;
-                    while((line = reader.readLine()) != null){
-                        buffer.append(line + "\n");
+                if(status == HttpURLConnection.HTTP_OK) {
+                    InputStream is = connection.getInputStream();
+                    StringBuffer buffer = new StringBuffer();
+                    if (is != null) {
+                        reader = new BufferedReader(new InputStreamReader(is));
+
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            buffer.append(line + "\n");
+                        }
                     }
-                }
 
-                if(buffer.length() > 0){
-                    jsonString = buffer.toString();
+                    if (buffer.length() > 0) {
+                        jsonString = buffer.toString();
+                    }
+
+                    try {
+                        return getSurveyDataFromJson(jsonString);
+                    } catch (JSONException e) {
+                        Log.e(LOG_TAG, "Error parsing json");
+                    }
+
+                }else{
+                    SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), null, getActivity());
+                    startLoginActivity();
                 }
             }catch(IOException e) {
                 Log.e(LOG_TAG, "Error", e);
@@ -127,12 +141,6 @@ public class SurveyActivityFragment extends Fragment {
                     }
                 }
             }
-
-            try {
-                return getSurveyDataFromJson(jsonString);
-            } catch (JSONException e) {
-                Log.e(LOG_TAG, "Error parsing json");
-            }
             return null;
         }
 
@@ -142,6 +150,7 @@ public class SurveyActivityFragment extends Fragment {
             final String SURVEY_TYPE = "type";
             final String QUESTION_SHEET = "questionSheet";
             final String SECTIONS_LIST = "sections";
+            final String SECTION_DESCRIPTION = "description";
             final String QUESTIONS_LIST = "questions";
             final String QUESTION_TYPE = "type";
             final String QUESTION_TYPE_CHOICE = "CHOICE";
@@ -152,6 +161,7 @@ public class SurveyActivityFragment extends Fragment {
             Log.e("json", jsonString);
 
             Survey survey = null;
+            Section section = null;
 
             JSONObject object = new JSONObject(jsonString);
             JSONArray surveysArray = object.getJSONArray(SURVEYS_LIST);
@@ -162,33 +172,39 @@ public class SurveyActivityFragment extends Fragment {
                 JSONObject questionSheetObject = surveyObject.getJSONObject(QUESTION_SHEET);
                 JSONArray sectionsArray = questionSheetObject.getJSONArray(SECTIONS_LIST);
 
-                /* add other sections later */
-                JSONObject section = sectionsArray.getJSONObject(0);
-                JSONArray questionsArray = section.getJSONArray(QUESTIONS_LIST);
-
                 survey = new Survey();
                 survey.setName(surveyObject.getString(SURVEY_NAME));
                 survey.setType(surveyObject.getString(SURVEY_TYPE));
-                for(int j = 0; j<questionsArray.length(); j++) {
-                    JSONObject questionObject = questionsArray.getJSONObject(j);
-                    String questionType = questionObject.getString(QUESTION_TYPE);
-                    if(questionType.equalsIgnoreCase(QUESTION_TYPE_CHOICE)){
-                        ChoiceQuestion question = new ChoiceQuestion();
-                        question.setDescription(questionObject.getString(QUESTION_DESCRIPTION));
-                        question.setType(questionObject.getString(QUESTION_TYPE));
-                        JSONArray choicesArray = questionObject.getJSONArray(CHOICES);
-                        for(int k = 0; k<choicesArray.length(); k++) {
-                            question.getChoices().add(choicesArray.getString(k));
-                        }
-                        survey.getQuestions().add(question);
-                    }
-                    else if(questionType.equalsIgnoreCase(QUESTION_TYPE_TEXT)){
-                        TextQuestion question = new TextQuestion();
-                        question.setDescription(questionObject.getString(QUESTION_DESCRIPTION));
-                        question.setType(questionObject.getString(QUESTION_TYPE));
 
-                        survey.getQuestions().add(question);
+                /* add all sections to survey */
+                for(int sec = 0; sec<sectionsArray.length(); sec++) {
+                    JSONObject sectionObject = sectionsArray.getJSONObject(sec);
+                    JSONArray questionsArray = sectionObject.getJSONArray(QUESTIONS_LIST);
+
+                    section = new Section();
+                    section.setDescription(sectionObject.getString(SECTION_DESCRIPTION));
+
+                    for (int q = 0; q < questionsArray.length(); q++) {
+                        JSONObject questionObject = questionsArray.getJSONObject(q);
+                        String questionType = questionObject.getString(QUESTION_TYPE);
+                        if (questionType.equalsIgnoreCase(QUESTION_TYPE_CHOICE)) {
+                            ChoiceQuestion question = new ChoiceQuestion();
+                            question.setDescription(questionObject.getString(QUESTION_DESCRIPTION));
+                            question.setType(questionObject.getString(QUESTION_TYPE));
+                            JSONArray choicesArray = questionObject.getJSONArray(CHOICES);
+                            for (int ch = 0; ch < choicesArray.length(); ch++) {
+                                question.getChoices().add(choicesArray.getString(ch));
+                            }
+                            section.getQuestions().add(question);
+                        } else if (questionType.equalsIgnoreCase(QUESTION_TYPE_TEXT)) {
+                            TextQuestion question = new TextQuestion();
+                            question.setDescription(questionObject.getString(QUESTION_DESCRIPTION));
+                            question.setType(questionObject.getString(QUESTION_TYPE));
+
+                            section.getQuestions().add(question);
+                        }
                     }
+                    survey.getSections().add(section);
                 }
                 surveys.add(survey);
                 results[i] = survey.getName();
@@ -208,15 +224,9 @@ public class SurveyActivityFragment extends Fragment {
         }
     }
 
-    public void setSharedValues(String key, String value, Context context) {
-        SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
-        SharedPreferences.Editor editor = prefs.edit();
-        editor.putString(key, value);
-        editor.commit();
+    public void startLoginActivity(){
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        startActivity(intent);
     }
 
-    public String getSharedValues(String key, Context context) {
-        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(context);
-        return preferences.getString(key, null);
-    }
 }

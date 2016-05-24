@@ -12,10 +12,10 @@ public class Survey implements Serializable {
     private long id;
     private String name;
     private String type;
-    private List<Question> questions;
+    private List<Section> sections;
 
     public Survey(){
-        questions = new ArrayList<>();
+        sections = new ArrayList<>();
     }
 
     public long getId() {
@@ -42,11 +42,11 @@ public class Survey implements Serializable {
         this.type = type;
     }
 
-    public List<Question> getQuestions() {
-        return questions;
+    public List<Section> getSections() {
+        return sections;
     }
 
-    public void setQuestions(List<Question> questions) {
-        this.questions = questions;
+    public void setSections(List<Section> sections) {
+        this.sections = sections;
     }
 }

@@ -2,15 +2,25 @@ package com.example.mahdiye.csns;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -19,6 +29,7 @@ import com.example.mahdiye.csns.survey.Answer;
 import com.example.mahdiye.csns.survey.ChoiceAnswer;
 import com.example.mahdiye.csns.survey.ChoiceQuestion;
 import com.example.mahdiye.csns.survey.Question;
+import com.example.mahdiye.csns.survey.Section;
 import com.example.mahdiye.csns.survey.Survey;
 import com.example.mahdiye.csns.survey.TextAnswer;
 import com.example.mahdiye.csns.survey.TextQuestion;
@@ -34,80 +45,167 @@ import java.util.TreeSet;
 public class SurveyDetailActivityFragment extends Fragment {
 
     final String LOG_TAG = SurveyDetailActivityFragment.class.getSimpleName();
-    MyCustomAdapter questionAdapter;
+    private static View rootView;
+    private static ViewPager pager;
+    private List<ImageView> dots;
+    private static int sectionsCount = 0;
 
     public SurveyDetailActivityFragment() {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        setHasOptionsMenu(true);
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_survey_detail, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+        if (id == R.id.action_submit_survey) {
+            submitSurvey();
+            Intent intent = new Intent(getActivity(), SurveyActivity.class);
+            startActivity(intent);
+            getActivity().finish();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        final View rootView = inflater.inflate(R.layout.fragment_survey_detail, container, false);
+        rootView = inflater.inflate(R.layout.fragment_survey_detail, container, false);
+
+        /* set sections count for pager*/
         Intent intent = getActivity().getIntent();
-        if(intent != null && intent.hasExtra("survey")){
-            Survey survey = (Survey)intent.getSerializableExtra("survey");
-
-            ((TextView)rootView.findViewById(R.id.survey_detail_description)).setText(survey.getName());
-            ListView listView = (ListView)rootView.findViewById(R.id.survey_detail_questions_listview);
-            listView.setItemsCanFocus(true);
-            questionAdapter = new MyCustomAdapter();
-
-            List<Question> questions = survey.getQuestions();
-            for(Question q: questions) {
-                if(q instanceof ChoiceQuestion) {
-                    questionAdapter.addChoiceItem((ChoiceQuestion) q);
-                }
-                else if(q instanceof TextQuestion) {
-                    questionAdapter.addTextItem((TextQuestion) q);
-                }
-            }
-            listView.setAdapter(questionAdapter);
+        if (intent != null && intent.hasExtra("survey")) {
+            Survey survey = (Survey) intent.getSerializableExtra("survey");
+            sectionsCount = survey.getSections().size();
         }
 
-        final Button submitButton = (Button)rootView.findViewById(R.id.button_survey_submit);
-        submitButton.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v) {
-                /* retrieve user answers */
-                ListView listView = (ListView)rootView.findViewById(R.id.survey_detail_questions_listview);
-                List<Answer> answers = new ArrayList<>();
-
-                int count = listView.getCount();
-                for(int itemIndex = 0; itemIndex<count; itemIndex++){
-                    Question question = (Question) listView.getItemAtPosition(itemIndex);
-                    View itemView = getViewByPosition(itemIndex, listView);
-                    TextView description = (TextView) itemView.findViewById(R.id.survey_detail_question_description);
-
-                    if(question instanceof ChoiceQuestion) {
-                        /* get checked choices */
-                        ChoiceAnswer answer = new ChoiceAnswer();
-                        answer.setQuestion(question);
-                        for(int chIndex = 0; chIndex<((ChoiceQuestion) question).getChoices().size(); chIndex++) {
-                            String identifier = "survey_detail_checkbox_" + chIndex;
-                            CheckBox checkbox = (CheckBox)itemView.findViewById(getId(identifier));
-                            if(checkbox.isChecked()) {
-                                answer.getSelections().add(chIndex);
-                            }
-                        }
-                        answers.add(answer);
-                    }else if(question instanceof TextQuestion) {
-                        /* get text answer */
-                        TextAnswer answer = new TextAnswer();
-                        answer.setQuestion(question);
-                        EditText editText = (EditText)itemView.findViewById(R.id.survey_detail_edittext_answer);
-                        answer.setText(editText.getText().toString());
-                        answers.add(answer);
-                    }
-                }
-
-                /* create answers json object */
-                String json = new Gson().toJson(answers);
-                System.out.print("");
-            }
-        });
+        pager = (ViewPager)rootView.findViewById(R.id.viewpager_questions);
+        pager.setAdapter(new MyPagerAdapter(getActivity().getSupportFragmentManager()));
+        addDots();
+        selectDot(0);
 
         return rootView;
     }
 
+    /*----------------View Pager Custom Adapter----------------*/
+    private class MyPagerAdapter extends FragmentPagerAdapter {
+        public MyPagerAdapter(FragmentManager fragmentManager) {
+            super(fragmentManager);
+        }
+
+        @Override
+        public Fragment getItem(int pos) {
+            SubFragment subFragment = new SubFragment();
+            subFragment.setPosition(pos);
+            subFragment.setQuestionAdapter(new MyCustomAdapter());
+            return subFragment;
+        }
+
+        @Override
+        public int getCount() {
+            return sectionsCount;
+        }
+    }
+
+    public static class SubFragment extends Fragment {
+        private int position;
+        private MyCustomAdapter questionAdapter;
+
+        public SubFragment(){}
+
+        public void setPosition(int position) {
+            this.position = position;
+        }
+
+        public void setQuestionAdapter(MyCustomAdapter questionAdapter) {
+            this.questionAdapter = questionAdapter;
+        }
+
+        @Override
+        public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+            rootView = inflater.inflate(R.layout.sub_fragment_survey_detail, container, false);
+
+            Intent intent = getActivity().getIntent();
+            if (intent != null && intent.hasExtra("survey")) {
+                Survey survey = (Survey) intent.getSerializableExtra("survey");
+
+                ListView listView = (ListView) rootView.findViewById(R.id.survey_detail_questions_listview);
+                listView.setItemsCanFocus(true);
+
+                Section section = survey.getSections().get(position);
+
+                List<Question> questions = section.getQuestions();
+                for (Question q : questions) {
+                    if (q instanceof ChoiceQuestion) {
+                        questionAdapter.addChoiceItem((ChoiceQuestion) q);
+                    } else if (q instanceof TextQuestion) {
+                        questionAdapter.addTextItem((TextQuestion) q);
+                    }
+                }
+
+                listView.setAdapter(questionAdapter);
+            }
+
+            return rootView;
+        }
+    }
+
+    public void addDots() {
+        dots = new ArrayList<>();
+        LinearLayout dotsLayout = (LinearLayout)rootView.findViewById(R.id.viewpager_dots);
+
+        for(int i = 0; i < sectionsCount; i++) {
+            ImageView dot = new ImageView(getActivity());
+            dot.setImageDrawable(getResources().getDrawable(R.drawable.pager_dot_not_selected));
+
+            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+            );
+            params.setMargins(10, 0, 10, 0);
+            dot.setLayoutParams(params);
+
+            dotsLayout.addView(dot, params);
+
+            dots.add(dot);
+        }
+
+        pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+            @Override
+            public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+            }
+
+            @Override
+            public void onPageSelected(int position) {
+                selectDot(position);
+            }
+
+            @Override
+            public void onPageScrollStateChanged(int state) {
+            }
+        });
+    }
+
+    public void selectDot(int idx) {
+        for(int i = 0; i < sectionsCount; i++) {
+            int drawableId = (i == idx) ? (R.drawable.pager_dot_selected) : (R.drawable.pager_dot_not_selected);
+            Drawable drawable = ContextCompat.getDrawable(getActivity(), drawableId);
+            dots.get(i).setImageDrawable(drawable);
+        }
+    }
+
+    /*----------------------------------------------------------*/
     public View getViewByPosition(int pos, ListView listView) {
         final int firstListItemPosition = listView.getFirstVisiblePosition();
         final int lastListItemPosition = firstListItemPosition + listView.getChildCount() - 1;
@@ -232,7 +330,55 @@ public class SurveyDetailActivityFragment extends Fragment {
             public TextView description;
             public CheckBox checkbox;
         }
-
     }
+    /*----------------------------------------------------------*/
+
+    public void submitSurvey() {
+        /* get answers from view pager */
+        ListView listView = (ListView)rootView.findViewById(R.id.survey_detail_questions_listview);
+        List<Answer> answers = new ArrayList<>();
+
+        int count = listView.getCount();
+        for(int itemIndex = 0; itemIndex<count; itemIndex++){
+            Question question = (Question) listView.getItemAtPosition(itemIndex);
+            View itemView = getViewByPosition(itemIndex, listView);
+            TextView description = (TextView) itemView.findViewById(R.id.survey_detail_question_description);
+
+            if(question instanceof ChoiceQuestion) {
+                /* get checked choices */
+                ChoiceAnswer answer = new ChoiceAnswer();
+                answer.setQuestion(question);
+                for(int chIndex = 0; chIndex<((ChoiceQuestion) question).getChoices().size(); chIndex++) {
+                    String identifier = "survey_detail_checkbox_" + chIndex;
+                    CheckBox checkbox = (CheckBox)itemView.findViewById(getId(identifier));
+                    if(checkbox.isChecked()) {
+                        answer.getSelections().add(chIndex);
+                    }
+                }
+                answers.add(answer);
+            }else if(question instanceof TextQuestion) {
+                /* get text answer */
+                TextAnswer answer = new TextAnswer();
+                answer.setQuestion(question);
+                EditText editText = (EditText)itemView.findViewById(R.id.survey_detail_edittext_answer);
+                answer.setText(editText.getText().toString());
+                answers.add(answer);
+            }
+        }
+
+        /* check survey answers */
+        if(validateAnswers(answers)){
+            /* create answers json object  and send back to API */
+            String json = new Gson().toJson(answers);
+            Log.e(LOG_TAG, json);
+        }else{
+            /* show error and show detail activity */
+        }
+    }
+
+    public boolean validateAnswers(List<Answer> answers) {
+        return true;
+    }
+
 
 }
