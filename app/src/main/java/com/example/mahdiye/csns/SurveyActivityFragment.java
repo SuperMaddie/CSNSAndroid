@@ -14,7 +14,8 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
 import com.example.mahdiye.csns.survey.ChoiceQuestion;
-import com.example.mahdiye.csns.survey.Section;
+import com.example.mahdiye.csns.survey.QuestionSection;
+import com.example.mahdiye.csns.survey.QuestionSheet;
 import com.example.mahdiye.csns.survey.Survey;
 import com.example.mahdiye.csns.survey.TextQuestion;
 import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
@@ -87,7 +88,7 @@ public class SurveyActivityFragment extends Fragment {
             String jsonString = null;
 
             try{
-                Uri buildUri = Uri.parse(BuildConfig.SURVEYS_BASE_URL).buildUpon()
+                Uri buildUri = Uri.parse(BuildConfig.SURVEYS_BASE_URL + "/list").buildUpon()
                         .appendQueryParameter("dept", params[0]).build();
 
                 URL url = new URL(buildUri.toString());
@@ -98,7 +99,6 @@ public class SurveyActivityFragment extends Fragment {
                 connection.connect();
 
                 int status = connection.getResponseCode();
-                Log.e("status", ""+status);
 
                 if(status == HttpURLConnection.HTTP_OK) {
                     InputStream is = connection.getInputStream();
@@ -119,7 +119,8 @@ public class SurveyActivityFragment extends Fragment {
                     try {
                         return getSurveyDataFromJson(jsonString);
                     } catch (JSONException e) {
-                        Log.e(LOG_TAG, "Error parsing json");
+                        e.printStackTrace();
+                        //Log.e(LOG_TAG, "Error parsing json");
                     }
 
                 }else{
@@ -128,7 +129,6 @@ public class SurveyActivityFragment extends Fragment {
                 }
             }catch(IOException e) {
                 Log.e(LOG_TAG, "Error", e);
-                jsonString = null;
             }finally{
                 if(connection != null){
                     connection.disconnect();
@@ -149,19 +149,26 @@ public class SurveyActivityFragment extends Fragment {
             final String SURVEY_NAME = "name";
             final String SURVEY_TYPE = "type";
             final String QUESTION_SHEET = "questionSheet";
+            final String QUESTION_SHEET_DESCRIPTION = "description";
             final String SECTIONS_LIST = "sections";
             final String SECTION_DESCRIPTION = "description";
             final String QUESTIONS_LIST = "questions";
+            final String POINT_VALUE = "pointValue";
             final String QUESTION_TYPE = "type";
             final String QUESTION_TYPE_CHOICE = "CHOICE";
             final String QUESTION_TYPE_TEXT = "TEXT";
             final String QUESTION_DESCRIPTION = "description";
             final String CHOICES = "choices";
+            final String CORRECT_SELECTIONS = "correctSelections";
+            final String MIN_SELECTIONS = "minSelections";
+            final String MAX_SELECTIONS = "maxSelections";
+            final String TEXT_LENGTH = "textLength";
 
             Log.e("json", jsonString);
 
-            Survey survey = null;
-            Section section = null;
+            Survey survey;
+            QuestionSheet questionSheet;
+            QuestionSection questionSection;
 
             JSONObject object = new JSONObject(jsonString);
             JSONArray surveysArray = object.getJSONArray(SURVEYS_LIST);
@@ -169,43 +176,68 @@ public class SurveyActivityFragment extends Fragment {
             String results[] = new String[surveysArray.length()];
             for(int i = 0; i<surveysArray.length(); i++){
                 JSONObject surveyObject = surveysArray.getJSONObject(i);
-                JSONObject questionSheetObject = surveyObject.getJSONObject(QUESTION_SHEET);
-                JSONArray sectionsArray = questionSheetObject.getJSONArray(SECTIONS_LIST);
 
                 survey = new Survey();
+                /*Long id = (Long.valueOf(surveyObject.get("id").toString()));
+                survey.setId(id);*/
                 survey.setName(surveyObject.getString(SURVEY_NAME));
                 survey.setType(surveyObject.getString(SURVEY_TYPE));
+                survey.setType(surveyObject.getString(SURVEY_TYPE));
+
+                JSONObject questionSheetObject = surveyObject.getJSONObject(QUESTION_SHEET);
+                questionSheet = new QuestionSheet();
+                /*id = questionSheetObject.getLong("id");
+                questionSheet.setId((id == null) ? null : id);*/
+                questionSheet.setDescription(questionSheetObject.getString(QUESTION_SHEET_DESCRIPTION));
+
+                JSONArray sectionsArray = questionSheetObject.getJSONArray(SECTIONS_LIST);
 
                 /* add all sections to survey */
                 for(int sec = 0; sec<sectionsArray.length(); sec++) {
                     JSONObject sectionObject = sectionsArray.getJSONObject(sec);
+                    questionSection = new QuestionSection();
+                    /*id = sectionObject.getLong("id");
+                    questionSection.setId((id == null) ? null : id);*/
+                    questionSection.setDescription(sectionObject.getString(SECTION_DESCRIPTION));
+
                     JSONArray questionsArray = sectionObject.getJSONArray(QUESTIONS_LIST);
-
-                    section = new Section();
-                    section.setDescription(sectionObject.getString(SECTION_DESCRIPTION));
-
                     for (int q = 0; q < questionsArray.length(); q++) {
                         JSONObject questionObject = questionsArray.getJSONObject(q);
                         String questionType = questionObject.getString(QUESTION_TYPE);
                         if (questionType.equalsIgnoreCase(QUESTION_TYPE_CHOICE)) {
                             ChoiceQuestion question = new ChoiceQuestion();
+                            question.setType(QUESTION_TYPE_CHOICE);
+                            /*id = questionObject.getLong("id");
+                            question.setId((id == null) ? null : id);*/
                             question.setDescription(questionObject.getString(QUESTION_DESCRIPTION));
-                            question.setType(questionObject.getString(QUESTION_TYPE));
+                            question.setPointValue(questionObject.getInt(POINT_VALUE));
+
                             JSONArray choicesArray = questionObject.getJSONArray(CHOICES);
                             for (int ch = 0; ch < choicesArray.length(); ch++) {
                                 question.getChoices().add(choicesArray.getString(ch));
                             }
-                            section.getQuestions().add(question);
+                            JSONArray correctSelectionsArray = questionObject.getJSONArray(CORRECT_SELECTIONS);
+                            for (int cs = 0; cs < correctSelectionsArray.length(); cs++) {
+                                question.getCorrectSelections().add(correctSelectionsArray.getInt(cs));
+                            }
+                            question.setMinSelections(questionObject.getInt(MIN_SELECTIONS));
+                            question.setMaxSelections(questionObject.getInt(MAX_SELECTIONS));
+
+                            questionSection.getQuestions().add(question);
                         } else if (questionType.equalsIgnoreCase(QUESTION_TYPE_TEXT)) {
                             TextQuestion question = new TextQuestion();
+                            question.setType(QUESTION_TYPE_TEXT);
+                            /*id = questionObject.getLong("id");
+                            question.setId((id == null) ? null : id);*/
                             question.setDescription(questionObject.getString(QUESTION_DESCRIPTION));
-                            question.setType(questionObject.getString(QUESTION_TYPE));
+                            question.setTextLength(questionObject.getInt(TEXT_LENGTH));
 
-                            section.getQuestions().add(question);
+                            questionSection.getQuestions().add(question);
                         }
                     }
-                    survey.getSections().add(section);
+                    questionSheet.getSections().add(questionSection);
                 }
+                survey.setQuestionSheet(questionSheet);
                 surveys.add(survey);
                 results[i] = survey.getName();
             }

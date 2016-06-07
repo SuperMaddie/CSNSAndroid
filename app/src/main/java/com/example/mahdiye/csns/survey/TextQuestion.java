@@ -1,12 +1,23 @@
 package com.example.mahdiye.csns.survey;
 
-import com.example.mahdiye.csns.survey.Question;
-
 /**
  * Created by Mahdiye on 5/10/2016.
  */
 public class TextQuestion extends Question {
+    private  String correctAnswer;
     private int textLength;
+
+    public TextQuestion(){
+        textLength = 20;
+    }
+
+    public String getCorrectAnswer() {
+        return correctAnswer;
+    }
+
+    public void setCorrectAnswer(String correctAnswer) {
+        this.correctAnswer = correctAnswer;
+    }
 
     public int getTextLength() {
         return textLength;
@@ -14,5 +25,17 @@ public class TextQuestion extends Question {
 
     public void setTextLength(int textLength) {
         this.textLength = textLength;
+    }
+
+    @Override
+    public String getType() {
+        return "TEXT";
+    }
+
+    @Override
+    public Answer createAnswer() {
+        TextAnswer answer = new TextAnswer( this );
+        answers.add( answer );
+        return answer;
     }
 }

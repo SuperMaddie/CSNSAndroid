@@ -5,14 +5,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Mahdiye on 5/16/2016.
+ * Created by Mahdiye on 6/5/2016.
  */
-public class Section implements Serializable {
+public class QuestionSection implements Serializable {
+    private Long id;
     private String description;
     private List<Question> questions;
 
-    public Section(){
-        questions = new ArrayList<>();
+    public QuestionSection() {
+        questions = new ArrayList<Question>();
+    }
+
+    public Question getQuestion( Long questionId ) {
+        for( Question question : questions )
+            if( question.getId() == questionId ) return question;
+
+        return null;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getDescription() {

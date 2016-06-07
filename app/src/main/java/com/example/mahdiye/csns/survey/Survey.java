@@ -9,20 +9,21 @@ import java.util.List;
  */
 public class Survey implements Serializable {
 
-    private long id;
+    private Long id;
     private String name;
     private String type;
-    private List<Section> sections;
+    private QuestionSheet questionSheet;
+    private List<SurveyResponse> responses;
 
     public Survey(){
-        sections = new ArrayList<>();
+        responses = new ArrayList<>();
     }
 
-    public long getId() {
+    public Long getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -42,11 +43,19 @@ public class Survey implements Serializable {
         this.type = type;
     }
 
-    public List<Section> getSections() {
-        return sections;
+    public QuestionSheet getQuestionSheet() {
+        return questionSheet;
     }
 
-    public void setSections(List<Section> sections) {
-        this.sections = sections;
+    public void setQuestionSheet(QuestionSheet questionSheet) {
+        this.questionSheet = questionSheet;
+    }
+
+    public List<SurveyResponse> getResponses() {
+        return responses;
+    }
+
+    public void setResponses(List<SurveyResponse> responses) {
+        this.responses = responses;
     }
 }

@@ -3,6 +3,8 @@ package com.example.mahdiye.csns;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -26,15 +28,24 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.mahdiye.csns.survey.Answer;
+import com.example.mahdiye.csns.survey.AnswerSection;
+import com.example.mahdiye.csns.survey.AnswerSheet;
 import com.example.mahdiye.csns.survey.ChoiceAnswer;
 import com.example.mahdiye.csns.survey.ChoiceQuestion;
 import com.example.mahdiye.csns.survey.Question;
-import com.example.mahdiye.csns.survey.Section;
+import com.example.mahdiye.csns.survey.QuestionSection;
 import com.example.mahdiye.csns.survey.Survey;
+import com.example.mahdiye.csns.survey.SurveyResponse;
 import com.example.mahdiye.csns.survey.TextAnswer;
 import com.example.mahdiye.csns.survey.TextQuestion;
+import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
@@ -45,6 +56,7 @@ import java.util.TreeSet;
 public class SurveyDetailActivityFragment extends Fragment {
 
     final String LOG_TAG = SurveyDetailActivityFragment.class.getSimpleName();
+    private static Survey survey;
     private static View rootView;
     private static ViewPager pager;
     private List<ImageView> dots;
@@ -69,7 +81,9 @@ public class SurveyDetailActivityFragment extends Fragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_submit_survey) {
-            submitSurvey();
+            final String TOKEN = SharedPreferencesUtil.getSharedValues(getString(R.string.user_token_key), getActivity());
+            String DEPT = "cs";
+            submitSurvey(DEPT, TOKEN);
             Intent intent = new Intent(getActivity(), SurveyActivity.class);
             startActivity(intent);
             getActivity().finish();
@@ -86,8 +100,8 @@ public class SurveyDetailActivityFragment extends Fragment {
         /* set sections count for pager*/
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra("survey")) {
-            Survey survey = (Survey) intent.getSerializableExtra("survey");
-            sectionsCount = survey.getSections().size();
+            survey = (Survey) intent.getSerializableExtra("survey");
+            sectionsCount = survey.getQuestionSheet().getSections().size();
         }
 
         pager = (ViewPager)rootView.findViewById(R.id.viewpager_questions);
@@ -97,6 +111,7 @@ public class SurveyDetailActivityFragment extends Fragment {
 
         return rootView;
     }
+
 
     /*----------------View Pager Custom Adapter----------------*/
     private class MyPagerAdapter extends FragmentPagerAdapter {
@@ -136,26 +151,21 @@ public class SurveyDetailActivityFragment extends Fragment {
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             rootView = inflater.inflate(R.layout.sub_fragment_survey_detail, container, false);
 
-            Intent intent = getActivity().getIntent();
-            if (intent != null && intent.hasExtra("survey")) {
-                Survey survey = (Survey) intent.getSerializableExtra("survey");
+            ListView listView = (ListView) rootView.findViewById(R.id.survey_detail_questions_listview);
+            listView.setItemsCanFocus(true);
 
-                ListView listView = (ListView) rootView.findViewById(R.id.survey_detail_questions_listview);
-                listView.setItemsCanFocus(true);
+            QuestionSection section = survey.getQuestionSheet().getSections().get(position);
 
-                Section section = survey.getSections().get(position);
-
-                List<Question> questions = section.getQuestions();
-                for (Question q : questions) {
-                    if (q instanceof ChoiceQuestion) {
-                        questionAdapter.addChoiceItem((ChoiceQuestion) q);
-                    } else if (q instanceof TextQuestion) {
-                        questionAdapter.addTextItem((TextQuestion) q);
-                    }
+            List<Question> questions = section.getQuestions();
+            for (Question q : questions) {
+                if (q instanceof ChoiceQuestion) {
+                    questionAdapter.addChoiceItem((ChoiceQuestion) q);
+                } else if (q instanceof TextQuestion) {
+                    questionAdapter.addTextItem((TextQuestion) q);
                 }
-
-                listView.setAdapter(questionAdapter);
             }
+
+            listView.setAdapter(questionAdapter);
 
             return rootView;
         }
@@ -333,51 +343,120 @@ public class SurveyDetailActivityFragment extends Fragment {
     }
     /*----------------------------------------------------------*/
 
-    public void submitSurvey() {
+    public void submitSurvey(String dept, String token) {
+        SurveyResponse response = new SurveyResponse(survey);
+        AnswerSheet answerSheet = new AnswerSheet();
+        AnswerSection answerSection;
+        List<Answer> answers;
         /* get answers from view pager */
-        ListView listView = (ListView)rootView.findViewById(R.id.survey_detail_questions_listview);
-        List<Answer> answers = new ArrayList<>();
+        for(int i = 0; i<pager.getChildCount(); i++) {
+            View view = pager.getChildAt(i);
+            ListView listView = (ListView)view.findViewById(R.id.survey_detail_questions_listview);
 
-        int count = listView.getCount();
-        for(int itemIndex = 0; itemIndex<count; itemIndex++){
-            Question question = (Question) listView.getItemAtPosition(itemIndex);
-            View itemView = getViewByPosition(itemIndex, listView);
-            TextView description = (TextView) itemView.findViewById(R.id.survey_detail_question_description);
+            answerSection = new AnswerSection();
+            answers = new ArrayList<>();
 
-            if(question instanceof ChoiceQuestion) {
-                /* get checked choices */
-                ChoiceAnswer answer = new ChoiceAnswer();
-                answer.setQuestion(question);
-                for(int chIndex = 0; chIndex<((ChoiceQuestion) question).getChoices().size(); chIndex++) {
-                    String identifier = "survey_detail_checkbox_" + chIndex;
-                    CheckBox checkbox = (CheckBox)itemView.findViewById(getId(identifier));
-                    if(checkbox.isChecked()) {
-                        answer.getSelections().add(chIndex);
+            int count = listView.getCount();
+            for(int itemIndex = 0; itemIndex<count; itemIndex++){
+                Question question = (Question) listView.getItemAtPosition(itemIndex);
+                View itemView = getViewByPosition(itemIndex, listView);
+
+                if(question instanceof ChoiceQuestion) {
+                    /* get checked choices */
+                    ChoiceAnswer answer = new ChoiceAnswer();
+                    answer.setQuestion(question);
+                    for(int chIndex = 0; chIndex<((ChoiceQuestion) question).getChoices().size(); chIndex++) {
+                        String identifier = "survey_detail_checkbox_" + chIndex;
+                        CheckBox checkbox = (CheckBox)itemView.findViewById(getId(identifier));
+                        if(checkbox.isChecked()) {
+                            answer.getSelections().add(chIndex);
+                        }
                     }
+                    answers.add(answer);
+                }else if(question instanceof TextQuestion) {
+                    /* get text answer */
+                    TextAnswer answer = new TextAnswer();
+                    answer.setQuestion(question);
+                    EditText editText = (EditText)itemView.findViewById(R.id.survey_detail_edittext_answer);
+                    answer.setText(editText.getText().toString());
+                    answers.add(answer);
                 }
-                answers.add(answer);
-            }else if(question instanceof TextQuestion) {
-                /* get text answer */
-                TextAnswer answer = new TextAnswer();
-                answer.setQuestion(question);
-                EditText editText = (EditText)itemView.findViewById(R.id.survey_detail_edittext_answer);
-                answer.setText(editText.getText().toString());
-                answers.add(answer);
             }
+            answerSection.setAnswers(answers);
+            answerSheet.getSections().add(answerSection);
         }
-
+        response.setAnswerSheet(answerSheet);
         /* check survey answers */
-        if(validateAnswers(answers)){
+        if(validateAnswers(response)){
             /* create answers json object  and send back to API */
-            String json = new Gson().toJson(answers);
-            Log.e(LOG_TAG, json);
+            Gson gson = new GsonBuilder().serializeNulls().create();
+            String json = gson.toJson(response);
+            Log.e("response", json);
+            /* send response to API */
+            /*SendResponseTask responseTask = new SendResponseTask();
+            responseTask.execute(dept, token, json);*/
         }else{
             /* show error and show detail activity */
         }
+
     }
 
-    public boolean validateAnswers(List<Answer> answers) {
+    public boolean validateAnswers(SurveyResponse response) {
         return true;
+    }
+
+    public class SendResponseTask extends AsyncTask<String, Void, Void> {
+        @Override
+        protected Void doInBackground(String... params) {
+            HttpURLConnection connection = null;
+            OutputStream os = null;
+
+            try{
+                Uri buildUri = Uri.parse(BuildConfig.SURVEYS_BASE_URL + "/saveAnswers").buildUpon()
+                        .appendQueryParameter("dept", params[0]).build();
+
+                URL url = new URL(buildUri.toString());
+
+                connection = (HttpURLConnection)url.openConnection();
+                connection.setRequestProperty("Authorization", "Bearer " + params[1]);
+                connection.setRequestProperty("Content-Type","application/json");
+                connection.setRequestMethod("POST");
+                connection.connect();
+
+                byte[] outputInBytes = params[2].getBytes("UTF-8");
+                os = connection.getOutputStream();
+                os.write( outputInBytes );
+
+                int status = connection.getResponseCode();
+
+                if(status == HttpURLConnection.HTTP_OK) {
+                    /* answers are saved successfully on server */
+                }else{
+                    /* reset users token */
+                    SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), null, getActivity());
+                    startLoginActivity();
+                }
+            }catch(IOException e) {
+                Log.e(LOG_TAG, "Error", e);
+            }finally{
+                if(connection != null){
+                    connection.disconnect();
+                }
+                if(os != null){
+                    try {
+                        os.close();
+                    } catch (IOException e) {
+                        Log.e(LOG_TAG, "Error closing stream", e);
+                    }
+                }
+            }
+            return null;
+        }
+    }
+
+    public void startLoginActivity(){
+        Intent intent = new Intent(getActivity(), LoginActivity.class);
+        startActivity(intent);
     }
 
 
