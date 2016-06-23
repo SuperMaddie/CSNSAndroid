@@ -1,28 +1,37 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 /**
  * Created by Mahdiye on 5/11/2016.
  */
-public abstract class Answer {
-    protected Long id;
+public class Answer {
+    /*protected Long id;
     protected int index;
     protected AnswerSection section;
-    protected Question question;
+    protected Question question;*/
+
+    private Long questionId;
+    private int index;
 
     public Answer() {}
 
     public Answer(Question question) {
-        this.question = question;
+        this.questionId = question.getId();
     }
 
-    public abstract int check();
-
-    public Long getId() {
+    /*public Long getId() {
         return id;
     }
 
     public void setId(Long id) {
         this.id = id;
+    }*/
+
+    public Long getQuestionId() {
+        return questionId;
+    }
+
+    public void setQuestionId(Long questionId) {
+        this.questionId = questionId;
     }
 
     public int getIndex() {
@@ -33,7 +42,7 @@ public abstract class Answer {
         this.index = index;
     }
 
-    public AnswerSection getSection() {
+    /*public AnswerSection getSection() {
         return section;
     }
 
@@ -47,5 +56,5 @@ public abstract class Answer {
 
     public void setQuestion(Question question) {
         this.question = question;
-    }
+    }*/
 }

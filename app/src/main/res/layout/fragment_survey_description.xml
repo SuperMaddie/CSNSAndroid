@@ -19,9 +19,15 @@
 
     <Button
         android:id="@+id/button_start_survey"
-        android:layout_width="150dp"
-        android:layout_height="wrap_content"
         android:layout_below="@+id/textview_survey_description"
-        android:text="Start Survey"/>
+        android:layout_width="@dimen/button_submit_width"
+        android:layout_height="@dimen/button_submit_height"
+        android:text="Start Survey"
+        android:layout_centerHorizontal="true"
+        android:background="@color/colorPrimary"
+        android:textColor="@color/colorTextView"
+        android:textStyle="bold"
+        android:layout_marginTop="50dp"
+        android:layout_gravity="center"/>
 
 </RelativeLayout>

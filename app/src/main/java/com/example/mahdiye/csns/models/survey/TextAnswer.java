@@ -1,4 +1,4 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 /**
  * Created by Mahdiye on 5/11/2016.
@@ -14,10 +14,10 @@ public class TextAnswer extends Answer {
         super( textQuestion );
     }
 
-    @Override
+    /*@Override
     public int check() {
         return 0;
-    }
+    }*/
 
     @Override
     public String toString() {

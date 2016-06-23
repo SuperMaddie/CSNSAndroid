@@ -1,5 +1,6 @@
 package com.example.mahdiye.csns;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -20,6 +21,8 @@ import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
 import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
+
+    private Context context;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,7 +48,18 @@ public class MainActivity extends AppCompatActivity {
         if (id == R.id.action_about) {
             return true;
         }
+        if (id == R.id.action_logout) {
+            SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), null, this);
+            startLoginActivity();
+            return true;
+        }
         return super.onOptionsItemSelected(item);
+    }
+
+    public void startLoginActivity(){
+        Intent intent = new Intent(this, LoginActivity.class);
+        startActivity(intent);
+        finish();
     }
 
     /* Main Activity Fragment Class */
@@ -101,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
         public void startLoginActivity(){
             Intent intent = new Intent(getActivity(), LoginActivity.class);
             startActivity(intent);
+            getActivity().finish();
         }
 
     }

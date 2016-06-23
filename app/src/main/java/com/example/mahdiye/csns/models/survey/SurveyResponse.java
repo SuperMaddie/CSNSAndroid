@@ -1,4 +1,4 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 import java.io.Serializable;
 
@@ -6,8 +6,8 @@ import java.io.Serializable;
  * Created by Mahdiye on 6/5/2016.
  */
 public class SurveyResponse implements Serializable {
-    private Long id;
-    private Survey survey;
+    /*private Long id;
+    private Survey survey;*/
     private Long surveyId;
     private AnswerSheet answerSheet;
 
@@ -15,12 +15,12 @@ public class SurveyResponse implements Serializable {
     }
 
     public SurveyResponse( Survey survey ) {
-        this.survey = survey;
+        //this.survey = survey;
         this.surveyId = survey.getId();
-        //this.answerSheet = new AnswerSheet( survey.getQuestionSheet() );
+        this.answerSheet = new AnswerSheet( survey.getQuestionSheet() );
     }
 
-    public Long getId() {
+    /*public Long getId() {
         return id;
     }
 
@@ -34,7 +34,14 @@ public class SurveyResponse implements Serializable {
 
     public void setSurvey(Survey survey) {
         this.survey = survey;
-        this.surveyId = survey.getId();
+    }*/
+
+    public Long getSurveyId() {
+        return surveyId;
+    }
+
+    public void setSurveyId(Long surveyId) {
+        this.surveyId = surveyId;
     }
 
     public AnswerSheet getAnswerSheet() {
@@ -43,13 +50,5 @@ public class SurveyResponse implements Serializable {
 
     public void setAnswerSheet(AnswerSheet answerSheet) {
         this.answerSheet = answerSheet;
-    }
-
-    public Long getSurveyId() {
-        return surveyId;
-    }
-
-    public void setSurveyId(Long surveyId) {
-        this.surveyId = surveyId;
     }
 }

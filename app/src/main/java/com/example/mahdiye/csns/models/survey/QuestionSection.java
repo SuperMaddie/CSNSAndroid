@@ -1,4 +1,4 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 import java.io.Serializable;
 import java.util.ArrayList;

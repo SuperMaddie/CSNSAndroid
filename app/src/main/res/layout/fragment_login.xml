@@ -17,6 +17,23 @@
         android:paddingLeft="20dp"
         android:paddingRight="20dp">
 
+        <LinearLayout
+            android:id="@+id/linearlayoutHeaderProgress"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:visibility="gone"
+            android:background="@color/colorBackgroundLoading">
+
+            <ProgressBar
+                android:id="@+id/progressBarHeaderProgress"
+                style="@android:style/Widget.ProgressBar.Small"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" >
+            </ProgressBar>
+        </LinearLayout>
+
         <EditText android:id="@+id/edittext_username"
             android:layout_width="match_parent"
             android:layout_height="@dimen/login_edittext_height"
@@ -37,7 +54,7 @@
             android:id="@+id/button_login"
             android:layout_width="@dimen/button_submit_width"
             android:layout_height="@dimen/button_submit_height"
-            android:text="Login"
+            android:text="@string/sign_in_button"
             android:layout_centerHorizontal="true"
             android:background="@color/colorPrimary"
             android:textColor="@color/colorTextView"

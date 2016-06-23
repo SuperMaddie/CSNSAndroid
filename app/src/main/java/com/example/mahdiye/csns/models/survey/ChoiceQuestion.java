@@ -1,4 +1,4 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,6 +18,18 @@ public class ChoiceQuestion extends Question {
         choices = new ArrayList<>();
         minSelections = 0;
         maxSelections = 4;
+    }
+
+    @Override
+    public String getType(){
+        return "CHOICE";
+    }
+
+    @Override
+    public Answer createAnswer() {
+        ChoiceAnswer answer = new ChoiceAnswer( this );
+        answers.add( answer );
+        return answer;
     }
 
     public List<String> getChoices() {
@@ -50,13 +62,6 @@ public class ChoiceQuestion extends Question {
 
     public void setMaxSelections(int maxSelections) {
         this.maxSelections = maxSelections;
-    }
-
-    @Override
-    public Answer createAnswer() {
-        ChoiceAnswer answer = new ChoiceAnswer( this );
-        answers.add( answer );
-        return answer;
     }
 
     public boolean isSingleSelection() {

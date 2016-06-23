@@ -1,4 +1,4 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 /**
  * Created by Mahdiye on 5/10/2016.
@@ -9,6 +9,18 @@ public class TextQuestion extends Question {
 
     public TextQuestion(){
         textLength = 20;
+    }
+
+    @Override
+    public String getType(){
+        return "TEXT";
+    }
+
+    @Override
+    public Answer createAnswer() {
+        TextAnswer answer = new TextAnswer( this );
+        answers.add( answer );
+        return answer;
     }
 
     public String getCorrectAnswer() {
@@ -25,17 +37,5 @@ public class TextQuestion extends Question {
 
     public void setTextLength(int textLength) {
         this.textLength = textLength;
-    }
-
-    @Override
-    public String getType() {
-        return "TEXT";
-    }
-
-    @Override
-    public Answer createAnswer() {
-        TextAnswer answer = new TextAnswer( this );
-        answers.add( answer );
-        return answer;
     }
 }

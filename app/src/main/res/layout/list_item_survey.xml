@@ -1,4 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
+
+<TextView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/survey_listview_item"
+    android:layout_width="match_parent"
+    android:layout_height="@dimen/survey_listview_item_height"
+    android:gravity="center_vertical"
+    android:layout_gravity="center"
+    android:fontFamily="sans-serif-condensed"
+    android:textStyle="bold"
+    android:textColor="@color/colorTextView"
+    android:textSize="@dimen/survey_listview_item_textsize"/>
+<!--
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -14,4 +27,4 @@
         android:textColor="@color/colorTextView"
         android:textSize="@dimen/survey_listview_item_textsize"/>
 
-</LinearLayout>
+</LinearLayout>-->

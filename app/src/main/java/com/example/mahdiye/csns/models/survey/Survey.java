@@ -1,4 +1,4 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -57,5 +57,10 @@ public class Survey implements Serializable {
 
     public void setResponses(List<SurveyResponse> responses) {
         this.responses = responses;
+    }
+
+    @Override
+    public String toString(){
+        return name;
     }
 }

@@ -1,15 +1,22 @@
 package com.example.mahdiye.csns;
 
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 
 import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
 
@@ -26,8 +33,6 @@ import java.net.URL;
  */
 public class LoginActivityFragment extends Fragment {
 
-    boolean userValid = false;
-
     EditText usernameEditText;
     EditText passwordEditText;
     Button loginButton;
@@ -36,11 +41,35 @@ public class LoginActivityFragment extends Fragment {
     }
 
     @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         final View rootView = inflater.inflate(R.layout.fragment_login, container, false);
 
         loginButton = (Button)rootView.findViewById(R.id.button_login);
+        loginButton.setOnTouchListener(new View.OnTouchListener() {
+            public boolean onTouch(View v, MotionEvent event) {
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN: {
+                        v.getBackground().setColorFilter(getResources().getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
+                        v.invalidate();
+                        break;
+                    }
+                    case MotionEvent.ACTION_UP: {
+                        v.getBackground().clearColorFilter();
+                        v.invalidate();
+                        break;
+                    }
+                }
+                return false;
+            }
+        });
+
         loginButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -49,12 +78,11 @@ public class LoginActivityFragment extends Fragment {
                 String username = usernameEditText.getText().toString();
                 String password = passwordEditText.getText().toString();
 
-                /* check user credentials */
-                validateUser(username, password);
-                if(userValid) {
-                    startMainActivity();
-                }else {
-                    /* show error and stay in login */
+                if(username == null || password == null) {
+                    /* show an error in login page username and password must be filled */
+                }else{
+                    /* check user credentials */
+                    validateUser(username, password);
                 }
             }
         });
@@ -63,6 +91,8 @@ public class LoginActivityFragment extends Fragment {
     }
 
     private void startMainActivity() {
+        Intent intent = new Intent(getActivity(), MainActivity.class);
+        startActivity(intent);
         getActivity().finish();
     }
 
@@ -71,12 +101,18 @@ public class LoginActivityFragment extends Fragment {
         authTask.execute(username, password);
     }
 
-    public class AuthenticationTask extends AsyncTask<String, Void, Void> {
+    public class AuthenticationTask extends AsyncTask<String, Void, String> {
 
         private String LOG_TAG = AuthenticationTask.class.getSimpleName();
 
+        LinearLayout linearLayoutHeaderProgress = (LinearLayout) getActivity().findViewById(R.id.linearlayoutHeaderProgress);
         @Override
-        protected Void doInBackground(String... params) {
+        protected void onPreExecute() {
+            //linearLayoutHeaderProgress.setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        protected String doInBackground(String... params) {
             HttpURLConnection connection = null;
             BufferedReader reader = null;
             String token = null;
@@ -105,13 +141,29 @@ public class LoginActivityFragment extends Fragment {
 
                     if(buffer.length() > 0){
                         token = buffer.toString();
-                        saveUserToken(token);
                     }
                 }else{
-                    /* go back to login page */
                     Log.e(LOG_TAG, "status : " + status);
-                }
+                    /* show alert in login page */
+                    getActivity().runOnUiThread(new Runnable() {
+                        public void run() {
+                            AlertDialog.Builder alert  = new AlertDialog.Builder(getActivity());
+                            alert.setMessage("Invalid Username or Password");
+                            alert.setTitle("Authentication Faild");
+                            alert.setPositiveButton("OK", null);
+                            alert.setCancelable(true);
+                            alert.create().show();
 
+                            alert.setPositiveButton("OK",
+                                new DialogInterface.OnClickListener() {
+                                    public void onClick(DialogInterface dialog, int which) {
+
+                                    }
+                                });
+                        }
+                    });
+
+                }
             } catch (MalformedURLException e) {
                 Log.e(LOG_TAG, "MalformedURLException", e);
             } catch (IOException e) {
@@ -128,12 +180,22 @@ public class LoginActivityFragment extends Fragment {
                     }
                 }
             }
-            return null;
+            return token;
+        }
+
+        @Override
+        protected void onPostExecute(String token) {
+            //linearLayoutHeaderProgress.setVisibility(View.GONE);
+            if(token != null) {
+                saveUserToken(token);
+                startMainActivity();
+            }else {
+                Log.e(LOG_TAG, "User is not valid");
+            }
         }
 
         public void saveUserToken(String token){
             SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), token, getContext());
-            userValid = true;
         }
 
     }

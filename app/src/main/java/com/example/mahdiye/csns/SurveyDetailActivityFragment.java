@@ -27,17 +27,17 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.example.mahdiye.csns.survey.Answer;
-import com.example.mahdiye.csns.survey.AnswerSection;
-import com.example.mahdiye.csns.survey.AnswerSheet;
-import com.example.mahdiye.csns.survey.ChoiceAnswer;
-import com.example.mahdiye.csns.survey.ChoiceQuestion;
-import com.example.mahdiye.csns.survey.Question;
-import com.example.mahdiye.csns.survey.QuestionSection;
-import com.example.mahdiye.csns.survey.Survey;
-import com.example.mahdiye.csns.survey.SurveyResponse;
-import com.example.mahdiye.csns.survey.TextAnswer;
-import com.example.mahdiye.csns.survey.TextQuestion;
+import com.example.mahdiye.csns.models.survey.Answer;
+import com.example.mahdiye.csns.models.survey.AnswerSection;
+import com.example.mahdiye.csns.models.survey.AnswerSheet;
+import com.example.mahdiye.csns.models.survey.ChoiceAnswer;
+import com.example.mahdiye.csns.models.survey.ChoiceQuestion;
+import com.example.mahdiye.csns.models.survey.Question;
+import com.example.mahdiye.csns.models.survey.QuestionSection;
+import com.example.mahdiye.csns.models.survey.Survey;
+import com.example.mahdiye.csns.models.survey.SurveyResponse;
+import com.example.mahdiye.csns.models.survey.TextAnswer;
+import com.example.mahdiye.csns.models.survey.TextQuestion;
 import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -67,8 +67,15 @@ public class SurveyDetailActivityFragment extends Fragment {
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
-        setHasOptionsMenu(true);
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+
+        /* set sections count for pager*/
+        Intent intent = getActivity().getIntent();
+        if (intent != null && intent.hasExtra("survey")) {
+            survey = (Survey) intent.getSerializableExtra("survey");
+            sectionsCount = survey.getQuestionSheet().getSections().size();
+        }
     }
 
     @Override
@@ -97,13 +104,6 @@ public class SurveyDetailActivityFragment extends Fragment {
                              Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.fragment_survey_detail, container, false);
 
-        /* set sections count for pager*/
-        Intent intent = getActivity().getIntent();
-        if (intent != null && intent.hasExtra("survey")) {
-            survey = (Survey) intent.getSerializableExtra("survey");
-            sectionsCount = survey.getQuestionSheet().getSections().size();
-        }
-
         pager = (ViewPager)rootView.findViewById(R.id.viewpager_questions);
         pager.setAdapter(new MyPagerAdapter(getActivity().getSupportFragmentManager()));
         addDots();
@@ -118,6 +118,14 @@ public class SurveyDetailActivityFragment extends Fragment {
         public MyPagerAdapter(FragmentManager fragmentManager) {
             super(fragmentManager);
         }
+
+        /*@Override
+        public Object instantiateItem(ViewGroup container, int pos) {
+            SubFragment subFragment = new SubFragment();
+            subFragment.setPosition(pos);
+            subFragment.setQuestionAdapter(new MyCustomAdapter());
+            return subFragment;
+        }*/
 
         @Override
         public Fragment getItem(int pos) {
@@ -345,7 +353,7 @@ public class SurveyDetailActivityFragment extends Fragment {
 
     public void submitSurvey(String dept, String token) {
         SurveyResponse response = new SurveyResponse(survey);
-        AnswerSheet answerSheet = new AnswerSheet();
+        AnswerSheet answerSheet = new AnswerSheet(survey.getQuestionSheet());
         AnswerSection answerSection;
         List<Answer> answers;
         /* get answers from view pager */
@@ -354,6 +362,7 @@ public class SurveyDetailActivityFragment extends Fragment {
             ListView listView = (ListView)view.findViewById(R.id.survey_detail_questions_listview);
 
             answerSection = new AnswerSection();
+            answerSection.setIndex(i);
             answers = new ArrayList<>();
 
             int count = listView.getCount();
@@ -363,8 +372,7 @@ public class SurveyDetailActivityFragment extends Fragment {
 
                 if(question instanceof ChoiceQuestion) {
                     /* get checked choices */
-                    ChoiceAnswer answer = new ChoiceAnswer();
-                    answer.setQuestion(question);
+                    ChoiceAnswer answer = new ChoiceAnswer((ChoiceQuestion) question);
                     for(int chIndex = 0; chIndex<((ChoiceQuestion) question).getChoices().size(); chIndex++) {
                         String identifier = "survey_detail_checkbox_" + chIndex;
                         CheckBox checkbox = (CheckBox)itemView.findViewById(getId(identifier));
@@ -375,8 +383,7 @@ public class SurveyDetailActivityFragment extends Fragment {
                     answers.add(answer);
                 }else if(question instanceof TextQuestion) {
                     /* get text answer */
-                    TextAnswer answer = new TextAnswer();
-                    answer.setQuestion(question);
+                    TextAnswer answer = new TextAnswer((TextQuestion) question);
                     EditText editText = (EditText)itemView.findViewById(R.id.survey_detail_edittext_answer);
                     answer.setText(editText.getText().toString());
                     answers.add(answer);
@@ -391,6 +398,7 @@ public class SurveyDetailActivityFragment extends Fragment {
             /* create answers json object  and send back to API */
             Gson gson = new GsonBuilder().serializeNulls().create();
             String json = gson.toJson(response);
+
             Log.e("response", json);
             /* send response to API */
             /*SendResponseTask responseTask = new SendResponseTask();
@@ -432,9 +440,9 @@ public class SurveyDetailActivityFragment extends Fragment {
                 if(status == HttpURLConnection.HTTP_OK) {
                     /* answers are saved successfully on server */
                 }else{
-                    /* reset users token */
-                    SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), null, getActivity());
-                    startLoginActivity();
+                    /* show error */
+                    //SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), null, getActivity());
+                    //startLoginActivity();
                 }
             }catch(IOException e) {
                 Log.e(LOG_TAG, "Error", e);

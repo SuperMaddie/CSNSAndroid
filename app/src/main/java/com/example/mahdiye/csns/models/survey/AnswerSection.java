@@ -1,4 +1,4 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -8,22 +8,22 @@ import java.util.List;
  * Created by Mahdiye on 6/5/2016.
  */
 public class AnswerSection implements Serializable {
-    private Long id;
-    private AnswerSheet answerSheet;
+    /*private Long id;
+    private AnswerSheet answerSheet;*/
     private int index;
     private List<Answer> answers;
 
     public AnswerSection() {
-        this.answers = new ArrayList<Answer>();
+        this( 0 );
     }
 
-    public AnswerSection( AnswerSheet answerSheet, int index ) {
-        this.answerSheet = answerSheet;
+    public AnswerSection( int index ) {
+        //this.answerSheet = answerSheet;
         this.index = index;
-        this.answers = new ArrayList<Answer>();
+        this.answers = new ArrayList<>();
     }
 
-    public Long getId() {
+    /*public Long getId() {
         return id;
     }
 
@@ -37,7 +37,7 @@ public class AnswerSection implements Serializable {
 
     public void setAnswerSheet(AnswerSheet answerSheet) {
         this.answerSheet = answerSheet;
-    }
+    }*/
 
     public int getIndex() {
         return index;

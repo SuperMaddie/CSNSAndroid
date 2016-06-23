@@ -1,4 +1,4 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -13,7 +13,6 @@ public abstract class Question implements Serializable {
     protected String description;
     protected int pointValue;
     protected List<Answer> answers;
-    protected String type;
 
     public Question(){
         pointValue = 1;
@@ -21,6 +20,7 @@ public abstract class Question implements Serializable {
     }
 
     public abstract Answer createAnswer();
+    public abstract String getType();
 
     public int getNumOfAnswers() {
         return answers.size();
@@ -56,13 +56,5 @@ public abstract class Question implements Serializable {
 
     public void setAnswers(List<Answer> answers) {
         this.answers = answers;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getType() {
-        return type;
     }
 }

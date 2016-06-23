@@ -1,4 +1,4 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,15 +13,15 @@ public class ChoiceAnswer extends Answer {
     private Set<Integer> selections;
 
     public ChoiceAnswer() {
-        selections = new HashSet<Integer>();
+        selections = new HashSet<>();
     }
 
     public ChoiceAnswer( ChoiceQuestion choiceQuestion ) {
         super( choiceQuestion );
-        selections = new HashSet<Integer>();
+        selections = new HashSet<>();
     }
 
-    @Override
+    /*@Override
     public int check()
     {
         int points = question.getPointValue();
@@ -34,7 +34,7 @@ public class ChoiceAnswer extends Answer {
             if( !correctSelections.contains( selection ) ) return -points;
 
         return points;
-    }
+    }*/
 
     @Override
     public String toString()

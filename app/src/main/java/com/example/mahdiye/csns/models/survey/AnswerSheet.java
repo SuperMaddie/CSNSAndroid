@@ -1,4 +1,4 @@
-package com.example.mahdiye.csns.survey;
+package com.example.mahdiye.csns.models.survey;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -9,10 +9,11 @@ import java.util.List;
  * Created by Mahdiye on 6/5/2016.
  */
 public class AnswerSheet implements Serializable {
-    private Long id;
-    private QuestionSheet questionSheet;
+    /*private Long id;
+    private QuestionSheet questionSheet;*/
     private List<AnswerSection> sections;
     private Date date;
+    private Long questionSheetId;
 
     public AnswerSheet() {
         sections = new ArrayList<>();
@@ -20,10 +21,11 @@ public class AnswerSheet implements Serializable {
 
     public AnswerSheet( QuestionSheet questionSheet )
     {
-        this.questionSheet = questionSheet;
+        //this.questionSheet = questionSheet;
+        this.questionSheetId = questionSheet.getId();
 
         sections = new ArrayList<>();
-        for( int i = 0; i < questionSheet.getSections().size(); ++i )
+        /*for( int i = 0; i < questionSheet.getSections().size(); ++i )
         {
             AnswerSection answerSection = new AnswerSection( this, i );
             List<Question> questions = questionSheet.getSections()
@@ -37,10 +39,10 @@ public class AnswerSheet implements Serializable {
                 answerSection.getAnswers().add( answer );
             }
             sections.add( answerSection );
-        }
+        }*/
     }
 
-    public Long getId() {
+    /*public Long getId() {
         return id;
     }
 
@@ -54,6 +56,14 @@ public class AnswerSheet implements Serializable {
 
     public void setQuestionSheet(QuestionSheet questionSheet) {
         this.questionSheet = questionSheet;
+    }*/
+
+    public Long getQuestionSheetId() {
+        return questionSheetId;
+    }
+
+    public void setQuestionSheetId(Long questionSheetId) {
+        this.questionSheetId = questionSheetId;
     }
 
     public List<AnswerSection> getSections() {
