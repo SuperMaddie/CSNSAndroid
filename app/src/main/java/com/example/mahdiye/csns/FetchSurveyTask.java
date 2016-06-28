@@ -16,7 +16,6 @@ import com.example.mahdiye.csns.models.survey.Survey;
 import com.example.mahdiye.csns.models.survey.TextQuestion;
 import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
 import com.example.mahdiye.csns.utils.SurveyUtils;
-import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -28,6 +27,11 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by Mahdiye on 6/20/2016.
@@ -36,187 +40,24 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
 
     private String LOG_TAG = FetchSurveyTask.class.getSimpleName();
 
-    //private ArrayAdapter<Survey> surveyArrayAdapter;
     private final Context mContext;
 
     public FetchSurveyTask(Context context) {
         mContext = context;
     }
 
-    /*Long addChoiceQuestion(Long id, String description, String choices, Long sectionId) {
-        Long questionId;
 
-        ContentValues questionValues = new ContentValues();
-        questionValues.put(CSNSContract.ChoiceQuestionEntry._ID, id);
-        questionValues.put(CSNSContract.ChoiceQuestionEntry.COLUMN_DESCRIPTION, description);
-        questionValues.put(CSNSContract.ChoiceQuestionEntry.COLUMN_CHOICES_JSON, choices);
-        questionValues.put(CSNSContract.ChoiceQuestionEntry.COLUMN_SECTION_KEY, sectionId);
-
-        *//* First, check if the question with this id exists in the db *//*
-        Cursor questionCursor = mContext.getContentResolver().query(
-                CSNSContract.ChoiceQuestionEntry.CONTENT_URI,
-                new String[]{CSNSContract.ChoiceQuestionEntry._ID},
-                CSNSContract.ChoiceQuestionEntry._ID + " = ?",
-                new String[]{id.toString()},
-                null);
-
-        if (questionCursor.moveToFirst()) {
-            *//* if the id exists update it *//*
-            int rowsUpdated = mContext.getContentResolver().update(
-                    CSNSContract.ChoiceQuestionEntry.CONTENT_URI,
-                    questionValues,
-                    CSNSContract.ChoiceQuestionEntry._ID + " = ?",
-                    new String[]{id.toString()}
-            );
-            //int questionIdIndex = questionCursor.getColumnIndex(CSNSContract.ChoiceQuestionEntry._ID);
-            questionId = id;
-        } else {
-            *//* insert the question into db *//*
-            Uri insertedUri = mContext.getContentResolver().insert(
-                    CSNSContract.ChoiceQuestionEntry.CONTENT_URI,
-                    questionValues
-            );
-
-            // The resulting URI contains the ID for the row.  Extract the questionId from the Uri.
-            questionId = ContentUris.parseId(insertedUri);
-        }
-
-        questionCursor.close();
-        return questionId;
-    }
-
-    Long addTextQuestion(Long id, String description, Long sectionId) {
-        Long questionId;
-
-        ContentValues questionValues = new ContentValues();
-        questionValues.put(CSNSContract.TextQuestionEntry._ID, id);
-        questionValues.put(CSNSContract.TextQuestionEntry.COLUMN_DESCRIPTION, description);
-        questionValues.put(CSNSContract.TextQuestionEntry.COLUMN_SECTION_KEY, sectionId);
-
-        *//* First, check if the question with this id exists in the db *//*
-        Cursor questionCursor = mContext.getContentResolver().query(
-                CSNSContract.TextQuestionEntry.CONTENT_URI,
-                new String[]{CSNSContract.TextQuestionEntry._ID},
-                CSNSContract.TextQuestionEntry._ID + " = ?",
-                new String[]{id.toString()},
-                null);
-
-        if (questionCursor.moveToFirst()) {
-            *//* if the id exists update it *//*
-            int rowsUpdated = mContext.getContentResolver().update(
-                    CSNSContract.TextQuestionEntry.CONTENT_URI,
-                    questionValues,
-                    CSNSContract.TextQuestionEntry._ID + " = ?",
-                    new String[]{id.toString()}
-            );
-            //int questionIdIndex = questionCursor.getColumnIndex(CSNSContract.TextQuestionEntry._ID);
-            questionId = Long.valueOf(id);
-        } else {
-            *//* insert the question into db *//*
-            Uri insertedUri = mContext.getContentResolver().insert(
-                    CSNSContract.TextQuestionEntry.CONTENT_URI,
-                    questionValues
-            );
-
-            // The resulting URI contains the ID for the row.  Extract the questionId from the Uri.
-            questionId = ContentUris.parseId(insertedUri);
-        }
-
-        questionCursor.close();
-        return questionId;
-    }
-
-    Long addQuestionSection(Long id, String description, Long questionSheetId) {
-        Long sectionId;
-
-        ContentValues sectionValues = new ContentValues();
-        sectionValues.put(CSNSContract.QuestionSectionEntry._ID, id);
-        sectionValues.put(CSNSContract.QuestionSectionEntry.COLUMN_DESCRIPTION, description);
-        sectionValues.put(CSNSContract.QuestionSectionEntry.COLUMN_QUESTION_SHEET_KEY, questionSheetId);
-
-        *//* First, check if the question with this id exists in the db *//*
-        Cursor sectionCursor = mContext.getContentResolver().query(
-                CSNSContract.QuestionSectionEntry.CONTENT_URI,
-                new String[]{CSNSContract.QuestionSectionEntry._ID},
-                CSNSContract.QuestionSectionEntry._ID + " = ?",
-                new String[]{id.toString()},
-                null);
-
-        if (sectionCursor.moveToFirst()) {
-            *//* if the id exists update it *//*
-            int rowsUpdated = mContext.getContentResolver().update(
-                    CSNSContract.QuestionSectionEntry.CONTENT_URI,
-                    sectionValues,
-                    CSNSContract.QuestionSectionEntry._ID + " = ?",
-                    new String[]{id.toString()}
-            );
-            //int questionIdIndex = questionCursor.getColumnIndex(CSNSContract.QuestionSectionEntry._ID);
-            sectionId = Long.valueOf(id);
-        } else {
-            *//* insert the question into db *//*
-            Uri insertedUri = mContext.getContentResolver().insert(
-                    CSNSContract.QuestionSectionEntry.CONTENT_URI,
-                    sectionValues
-            );
-
-            // The resulting URI contains the ID for the row.  Extract the questionId from the Uri.
-            sectionId = ContentUris.parseId(insertedUri);
-        }
-
-        sectionCursor.close();
-        return sectionId;
-    }
-
-    Long addQuestionSheet(Long id, String description) {
-        Long sectionId;
-
-        ContentValues questionSheetValues = new ContentValues();
-        questionSheetValues.put(CSNSContract.QuestionSheetEntry._ID, id);
-        questionSheetValues.put(CSNSContract.QuestionSheetEntry.COLUMN_DESCRIPTION, description);
-
-        *//* First, check if the question with this id exists in the db *//*
-        Cursor questioSheetCursor = mContext.getContentResolver().query(
-                CSNSContract.QuestionSheetEntry.CONTENT_URI,
-                new String[]{CSNSContract.QuestionSheetEntry._ID},
-                CSNSContract.QuestionSheetEntry._ID + " = ?",
-                new String[]{id.toString()},
-                null);
-
-        if (questioSheetCursor.moveToFirst()) {
-            *//* if the id exists update it *//*
-            int rowsUpdated = mContext.getContentResolver().update(
-                    CSNSContract.QuestionSheetEntry.CONTENT_URI,
-                    questionSheetValues,
-                    CSNSContract.QuestionSheetEntry._ID + " = ?",
-                    new String[]{id.toString()}
-            );
-            //int questionIdIndex = questionCursor.getColumnIndex(CSNSContract.QuestionSheetEntry._ID);
-            sectionId = Long.valueOf(id);
-        } else {
-            *//* insert the question into db *//*
-            Uri insertedUri = mContext.getContentResolver().insert(
-                    CSNSContract.QuestionSheetEntry.CONTENT_URI,
-                    questionSheetValues
-            );
-
-            // The resulting URI contains the ID for the row.  Extract the questionId from the Uri.
-            sectionId = ContentUris.parseId(insertedUri);
-        }
-
-        questioSheetCursor.close();
-        return sectionId;
-    }*/
-
-    Long addSurvey(Survey survey) {
+    Long saveSurvey(Survey survey) {
         Long surveyId;
-
-        Gson gson  = new Gson();
 
         ContentValues surveyValues = new ContentValues();
         surveyValues.put(CSNSContract.SurveyEntry._ID, survey.getId());
         surveyValues.put(CSNSContract.SurveyEntry.COLUMN_SURVEY_JSON, SurveyUtils.getSurveyBytes(survey));
+        surveyValues.put(CSNSContract.SurveyEntry.COLUMN_DELETED, survey.isDeleted());
+        surveyValues.put(CSNSContract.SurveyEntry.COLUMN_PUBLISH_DATE, survey.getPublishDate().getTimeInMillis());
+        surveyValues.put(CSNSContract.SurveyEntry.COLUMN_CLOSE_DATE, survey.getCloseDate().getTimeInMillis());
 
-        /* First, check if the question with this id exists in the db */
+        /* First, check if the survey with this id exists in the db */
         Cursor surveyCursor = mContext.getContentResolver().query(
                 CSNSContract.SurveyEntry.CONTENT_URI,
                 new String[]{CSNSContract.SurveyEntry._ID},
@@ -235,7 +76,7 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
             //int questionIdIndex = questionCursor.getColumnIndex(CSNSContract.QuestionSheetEntry._ID);
             surveyId = Long.valueOf(survey.getId());
         } else {
-            /* insert the question into db */
+            /* insert the survey into db */
             Uri insertedUri = mContext.getContentResolver().insert(
                     CSNSContract.SurveyEntry.CONTENT_URI,
                     surveyValues
@@ -243,7 +84,6 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
             // The resulting URI contains the ID for the row.  Extract the questionId from the Uri.
             surveyId = ContentUris.parseId(insertedUri);
         }
-
         surveyCursor.close();
         return surveyId;
     }
@@ -288,14 +128,13 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
                     getSurveyDataFromJson(jsonString);
                 } catch (JSONException e) {
                     e.printStackTrace();
-                    //Log.e(LOG_TAG, "Error parsing json");
                 }
 
             }else{
                 SharedPreferencesUtil.setSharedValues(mContext.getString(R.string.user_token_key), null, mContext);
             }
         }catch(IOException e) {
-            Log.e(LOG_TAG, "Error", e);
+            Log.e(LOG_TAG, "IO Exception Getting Surveys", e);
         }finally{
             if(connection != null){
                 connection.disconnect();
@@ -330,16 +169,32 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
         final String MIN_SELECTIONS = "minSelections";
         final String MAX_SELECTIONS = "maxSelections";
         final String TEXT_LENGTH = "textLength";
+        final String PUBLISH_DATE = "publishDate";
+        final String CLOSE_DATE = "closeDate";
+        final String DELETED = "deleted";
 
-        //Log.e("json", jsonString);
+        final String SECTION_INDICES = "sectionIndices";
 
-        Gson gson = new Gson();
+        Log.e("json", jsonString);
+
         Survey survey;
         QuestionSheet questionSheet;
         QuestionSection questionSection;
 
         JSONObject object = new JSONObject(jsonString);
+        JSONObject sectionIndicesJsonObject = object.getJSONObject(SECTION_INDICES);
         JSONArray surveysArray = object.getJSONArray(SURVEYS_LIST);
+
+        /* get section indices */
+        Map<Long, Integer> sectionIndices = new HashMap<>();
+
+
+        Iterator iterator = sectionIndicesJsonObject.keys();
+        while(iterator.hasNext()){
+            String key = (String)iterator.next();
+            int value = sectionIndicesJsonObject.getInt(key);
+            sectionIndices.put(Long.valueOf(key),value);
+        }
 
         Survey results[] = new Survey[surveysArray.length()];
         for(int i = 0; i<surveysArray.length(); i++){
@@ -351,6 +206,9 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
             }
             survey.setName(surveyObject.getString(SURVEY_NAME));
             survey.setType(surveyObject.getString(SURVEY_TYPE));
+            survey.setDeleted(surveyObject.getBoolean(DELETED));
+            survey.setPublishDate(SurveyUtils.getCalendarFromMillis(surveyObject.getLong(PUBLISH_DATE)));
+            survey.setCloseDate(SurveyUtils.getCalendarFromMillis(surveyObject.getLong(CLOSE_DATE)));
 
             JSONObject questionSheetObject = surveyObject.getJSONObject(QUESTION_SHEET);
             questionSheet = new QuestionSheet();
@@ -359,24 +217,30 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
             }
             questionSheet.setDescription(questionSheetObject.getString(QUESTION_SHEET_DESCRIPTION));
 
-            /* save question sheet in db */
-            //Long questionSheetId = addQuestionSheet(questionSheet.getId(), questionSheet.getDescription());
-            /* save survey in db */
-            //Long surveyId = addSurvey(survey.getId(), survey.getName(), survey.getType(), questionSheetId);
-
             JSONArray sectionsArray = questionSheetObject.getJSONArray(SECTIONS_LIST);
+            /*for(int sec = 0; sec<sectionsArray.length(); sec++) {
+                questionSheet.getSections().add(new QuestionSection());
+            }*/
+
+            List<QuestionSection> sections = new ArrayList<>();
+            for(int sec = 0; sec<sectionsArray.length(); sec++) {
+                sections.add(new QuestionSection());
+            }
 
             /* add all sections to survey */
             for(int sec = 0; sec<sectionsArray.length(); sec++) {
                 JSONObject sectionObject = sectionsArray.getJSONObject(sec);
-                questionSection = new QuestionSection();
+                Long sectionId = null;
                 if(!sectionObject.isNull("id")) {
-                    questionSection.setId(sectionObject.getLong("id"));
+                    sectionId = sectionObject.getLong("id");
                 }
+
+                int index = sectionIndices.get(sectionId);
+
+                questionSection = sections.get(index);
+                questionSection.setId(sectionId);
+
                 questionSection.setDescription(sectionObject.getString(SECTION_DESCRIPTION));
-                /* save section to db */
-                /*Long sectionId = addQuestionSection(questionSection.getId(),
-                        questionSection.getDescription(), questionSheetId);*/
 
                 JSONArray questionsArray = sectionObject.getJSONArray(QUESTIONS_LIST);
                 for (int q = 0; q < questionsArray.length(); q++) {
@@ -403,9 +267,6 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
 
                         questionSection.getQuestions().add(question);
 
-                        /* save question in db */
-                        /*Long questionId = addChoiceQuestion(question.getId(), question.getDescription(),
-                                gson.toJson(question.getChoices()), sectionId);*/
                     } else if (questionType.equalsIgnoreCase(QUESTION_TYPE_TEXT)) {
                         TextQuestion question = new TextQuestion();
                         if(!questionObject.isNull("id")){
@@ -415,17 +276,14 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
                         question.setTextLength(questionObject.getInt(TEXT_LENGTH));
 
                         questionSection.getQuestions().add(question);
-
-                        /* save question in db */
-                        //Long questionId = addTextQuestion(question.getId(), question.getDescription(), sectionId);
                     }
                 }
-                questionSheet.getSections().add(questionSection);
             }
+            questionSheet.setSections(sections);
             survey.setQuestionSheet(questionSheet);
             results[i] = survey;
             /* save survey */
-            Long surveyId = addSurvey(survey);
+            Long surveyId = saveSurvey(survey);
         }
 
         return null;

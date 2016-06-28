@@ -10,12 +10,21 @@
     tools:showIn="@layout/activity_survey_description">
 
     <TextView
-        android:id="@+id/textview_survey_description"
+        android:id="@+id/survey_description_survey_title_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:minHeight="30dp"
-        android:textSize="16sp"
+        android:textSize="18sp"
         android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/textview_survey_description"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/survey_description_survey_title_textview"
+        android:layout_marginTop="5dp"
+        android:minHeight="30dp"
+        android:textSize="16sp" />
 
     <Button
         android:id="@+id/button_start_survey"

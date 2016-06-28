@@ -11,4 +11,7 @@ public class SurveyDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_survey_detail);
     }
 
+    public void setActionBarTitle(String title){
+        getSupportActionBar().setTitle(title);
+    }
 }

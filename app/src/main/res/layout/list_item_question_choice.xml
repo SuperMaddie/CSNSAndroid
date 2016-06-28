@@ -17,7 +17,7 @@
 
     <!-- 10 checkboxes are added here, they're all invisible at startup -->
 
-    <CheckBox
+    <!--<CheckBox
         android:id="@+id/survey_detail_checkbox_0"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -66,6 +66,6 @@
         android:id="@+id/survey_detail_checkbox_9"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"/>
+        android:visibility="gone"/>-->
 
 </LinearLayout>

@@ -38,7 +38,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/login_edittext_height"
             android:inputType="text"
-            android:fontFamily="sans-serif-condensed"
+            android:fontFamily="sans-serif"
             android:hint="Username" />
 
 
@@ -46,7 +46,7 @@
             android:layout_width="match_parent"
             android:layout_height="@dimen/login_edittext_height"
             android:inputType="textPassword"
-            android:fontFamily="sans-serif-condensed"
+            android:fontFamily="sans-serif"
             android:hint="Password"/>
 
 

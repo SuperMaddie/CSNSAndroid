@@ -2,6 +2,7 @@ package com.example.mahdiye.csns.models.survey;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -14,9 +15,13 @@ public class Survey implements Serializable {
     private String type;
     private QuestionSheet questionSheet;
     private List<SurveyResponse> responses;
+    private Calendar publishDate;
+    private Calendar closeDate;
+    boolean deleted;
 
     public Survey(){
         responses = new ArrayList<>();
+        deleted = false;
     }
 
     public Long getId() {
@@ -57,6 +62,30 @@ public class Survey implements Serializable {
 
     public void setResponses(List<SurveyResponse> responses) {
         this.responses = responses;
+    }
+
+    public Calendar getPublishDate() {
+        return publishDate;
+    }
+
+    public void setPublishDate(Calendar publishDate) {
+        this.publishDate = publishDate;
+    }
+
+    public Calendar getCloseDate() {
+        return closeDate;
+    }
+
+    public void setCloseDate( Calendar closeDate ) {
+        this.closeDate = closeDate;
+    }
+
+    public boolean isDeleted() {
+        return deleted;
+    }
+
+    public void setDeleted(boolean deleted) {
+        this.deleted = deleted;
     }
 
     @Override

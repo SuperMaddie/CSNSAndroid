@@ -8,9 +8,8 @@ import java.util.List;
  * Created by Mahdiye on 6/5/2016.
  */
 public class AnswerSection implements Serializable {
-    /*private Long id;
-    private AnswerSheet answerSheet;*/
     private int index;
+    private Long questionSectionId;
     private List<Answer> answers;
 
     public AnswerSection() {
@@ -18,26 +17,9 @@ public class AnswerSection implements Serializable {
     }
 
     public AnswerSection( int index ) {
-        //this.answerSheet = answerSheet;
         this.index = index;
         this.answers = new ArrayList<>();
     }
-
-    /*public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public AnswerSheet getAnswerSheet() {
-        return answerSheet;
-    }
-
-    public void setAnswerSheet(AnswerSheet answerSheet) {
-        this.answerSheet = answerSheet;
-    }*/
 
     public int getIndex() {
         return index;
@@ -45,6 +27,14 @@ public class AnswerSection implements Serializable {
 
     public void setIndex(int index) {
         this.index = index;
+    }
+
+    public Long getQuestionSectionId() {
+        return questionSectionId;
+    }
+
+    public void setQuestionSectionId(Long questionSectionId) {
+        this.questionSectionId = questionSectionId;
     }
 
     public List<Answer> getAnswers() {

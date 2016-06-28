@@ -162,7 +162,6 @@ public class LoginActivityFragment extends Fragment {
                                 });
                         }
                     });
-
                 }
             } catch (MalformedURLException e) {
                 Log.e(LOG_TAG, "MalformedURLException", e);

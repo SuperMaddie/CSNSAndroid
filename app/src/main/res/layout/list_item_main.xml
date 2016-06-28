@@ -10,7 +10,7 @@
         android:layout_height="@dimen/main_listview_item_height"
         android:gravity="center_vertical"
         android:layout_gravity="center"
-        android:fontFamily="sans-serif-condensed"
+        android:fontFamily="sans-serif"
         android:textStyle="bold"
         android:textColor="@color/colorTextView"
         android:textSize="@dimen/main_listview_item_textsize"/>

@@ -17,13 +17,9 @@ public class CSNSProvider extends ContentProvider {
     private static final UriMatcher sUriMatcher = buildUriMatcher();
 
     static final int SURVEY = 100;
-    /*static final int QUESTION_SHEET = 200;
-    static final int QUESTION_SECTION = 300;
-    static final int CHOICE_QUESTION = 400;
-    static final int TEXT_QUESTION = 500;*/
+    static final int SURVEY_RESPONSE = 300;
 
     static {
-
     }
 
     static UriMatcher buildUriMatcher() {
@@ -31,10 +27,7 @@ public class CSNSProvider extends ContentProvider {
         final String authority = CSNSContract.CONTENT_AUTHORITY;
 
         matcher.addURI(authority, CSNSContract.PATH_SURVEY, SURVEY);
-        /*matcher.addURI(authority, CSNSContract.PATH_QUESTION_SHEET, QUESTION_SHEET);
-        matcher.addURI(authority, CSNSContract.PATH_QUESTION_SECTION, QUESTION_SECTION);
-        matcher.addURI(authority, CSNSContract.PATH_CHOICE_QUESTION, CHOICE_QUESTION);
-        matcher.addURI(authority, CSNSContract.PATH_TEXT_QUESTION, TEXT_QUESTION);*/
+        matcher.addURI(authority, CSNSContract.PATH_SURVEY_RESPONSE, SURVEY_RESPONSE);
 
         return matcher;
     }
@@ -61,9 +54,9 @@ public class CSNSProvider extends ContentProvider {
                 );
                 break;
             }
-            /*case QUESTION_SHEET: {
+            case SURVEY_RESPONSE: {
                 retCursor = mOpenHelper.getReadableDatabase().query(
-                        CSNSContract.QuestionSheetEntry.TABLE_NAME,
+                        CSNSContract.SurveyResponseEntry.TABLE_NAME,
                         projection,
                         selection,
                         selectionArgs,
@@ -73,42 +66,6 @@ public class CSNSProvider extends ContentProvider {
                 );
                 break;
             }
-            case QUESTION_SECTION: {
-                retCursor = mOpenHelper.getReadableDatabase().query(
-                        CSNSContract.QuestionSectionEntry.TABLE_NAME,
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-            }
-            case CHOICE_QUESTION: {
-                retCursor = mOpenHelper.getReadableDatabase().query(
-                        CSNSContract.ChoiceQuestionEntry.TABLE_NAME,
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-            }
-            case TEXT_QUESTION: {
-                retCursor = mOpenHelper.getReadableDatabase().query(
-                        CSNSContract.TextQuestionEntry.TABLE_NAME,
-                        projection,
-                        selection,
-                        selectionArgs,
-                        null,
-                        null,
-                        sortOrder
-                );
-                break;
-            }*/
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -122,14 +79,8 @@ public class CSNSProvider extends ContentProvider {
         switch (match) {
             case SURVEY:
                 return CSNSContract.SurveyEntry.CONTENT_TYPE;
-            /*case QUESTION_SHEET:
-                return CSNSContract.QuestionSheetEntry.CONTENT_TYPE;
-            case QUESTION_SECTION:
-                return CSNSContract.QuestionSectionEntry.CONTENT_TYPE;
-            case CHOICE_QUESTION:
-                return CSNSContract.ChoiceQuestionEntry.CONTENT_TYPE;
-            case TEXT_QUESTION:
-                return CSNSContract.TextQuestionEntry.CONTENT_TYPE;*/
+            case SURVEY_RESPONSE:
+                return CSNSContract.SurveyResponseEntry.CONTENT_TYPE;
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -150,38 +101,14 @@ public class CSNSProvider extends ContentProvider {
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
-            /*case QUESTION_SHEET: {
-                long _id = db.insert(CSNSContract.QuestionSheetEntry.TABLE_NAME, null, values);
+            case SURVEY_RESPONSE: {
+                long _id = db.insert(CSNSContract.SurveyResponseEntry.TABLE_NAME, null, values);
                 if (_id > 0)
-                    returnUri = CSNSContract.QuestionSheetEntry.buildQuestionSheetUri(_id);
+                    returnUri = CSNSContract.SurveyResponseEntry.buildSurveyResponseUri(_id);
                 else
                     throw new android.database.SQLException("Failed to insert row into " + uri);
                 break;
             }
-            case QUESTION_SECTION: {
-                long _id = db.insert(CSNSContract.QuestionSectionEntry.TABLE_NAME, null, values);
-                if (_id > 0)
-                    returnUri = CSNSContract.QuestionSectionEntry.buildQuestionSectionUri(_id);
-                else
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
-                break;
-            }
-            case CHOICE_QUESTION: {
-                long _id = db.insert(CSNSContract.ChoiceQuestionEntry.TABLE_NAME, null, values);
-                if (_id > 0)
-                    returnUri = CSNSContract.ChoiceQuestionEntry.buildQuestionUri(_id);
-                else
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
-                break;
-            }
-            case TEXT_QUESTION: {
-                long _id = db.insert(CSNSContract.TextQuestionEntry.TABLE_NAME, null, values);
-                if (_id > 0)
-                    returnUri = CSNSContract.TextQuestionEntry.buildQuestionUri(_id);
-                else
-                    throw new android.database.SQLException("Failed to insert row into " + uri);
-                break;
-            }*/
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -201,22 +128,10 @@ public class CSNSProvider extends ContentProvider {
                 rowsDeleted = db.delete(CSNSContract.SurveyEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             }
-            /*case QUESTION_SHEET: {
-                rowsDeleted = db.delete(CSNSContract.QuestionSheetEntry.TABLE_NAME, selection, selectionArgs);
+            case SURVEY_RESPONSE: {
+                rowsDeleted = db.delete(CSNSContract.SurveyResponseEntry.TABLE_NAME, selection, selectionArgs);
                 break;
             }
-            case QUESTION_SECTION: {
-                rowsDeleted = db.delete(CSNSContract.QuestionSectionEntry.TABLE_NAME, selection, selectionArgs);
-                break;
-            }
-            case CHOICE_QUESTION: {
-                rowsDeleted = db.delete(CSNSContract.ChoiceQuestionEntry.TABLE_NAME, selection, selectionArgs);
-                break;
-            }
-            case TEXT_QUESTION: {
-                rowsDeleted = db.delete(CSNSContract.TextQuestionEntry.TABLE_NAME, selection, selectionArgs);
-                break;
-            }*/
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -238,22 +153,10 @@ public class CSNSProvider extends ContentProvider {
                 rowsUpdated = db.update(CSNSContract.SurveyEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
             }
-            /*case QUESTION_SHEET: {
-                rowsUpdated = db.update(CSNSContract.QuestionSheetEntry.TABLE_NAME, values, selection, selectionArgs);
+            case SURVEY_RESPONSE: {
+                rowsUpdated = db.update(CSNSContract.SurveyResponseEntry.TABLE_NAME, values, selection, selectionArgs);
                 break;
             }
-            case QUESTION_SECTION: {
-                rowsUpdated = db.update(CSNSContract.QuestionSectionEntry.TABLE_NAME, values, selection, selectionArgs);
-                break;
-            }
-            case CHOICE_QUESTION: {
-                rowsUpdated = db.update(CSNSContract.ChoiceQuestionEntry.TABLE_NAME, values, selection, selectionArgs);
-                break;
-            }
-            case TEXT_QUESTION: {
-                rowsUpdated = db.update(CSNSContract.TextQuestionEntry.TABLE_NAME, values, selection, selectionArgs);
-                break;
-            }*/
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
         }
@@ -285,40 +188,6 @@ public class CSNSProvider extends ContentProvider {
                 getContext().getContentResolver().notifyChange(uri, null);
                 return returnCount;
             }
-            /*case CHOICE_QUESTION: {
-                db.beginTransaction();
-                int returnCount = 0;
-                try {
-                    for (ContentValues value : values) {
-                        long _id = db.insert(CSNSContract.ChoiceQuestionEntry.TABLE_NAME, null, value);
-                        if (_id != -1) {
-                            returnCount++;
-                        }
-                    }
-                    db.setTransactionSuccessful();
-                } finally {
-                    db.endTransaction();
-                }
-                getContext().getContentResolver().notifyChange(uri, null);
-                return returnCount;
-            }
-            case TEXT_QUESTION: {
-                db.beginTransaction();
-                int returnCount = 0;
-                try {
-                    for (ContentValues value : values) {
-                        long _id = db.insert(CSNSContract.TextQuestionEntry.TABLE_NAME, null, value);
-                        if (_id != -1) {
-                            returnCount++;
-                        }
-                    }
-                    db.setTransactionSuccessful();
-                } finally {
-                    db.endTransaction();
-                }
-                getContext().getContentResolver().notifyChange(uri, null);
-                return returnCount;
-            }*/
             default:
                 return super.bulkInsert(uri, values);
         }

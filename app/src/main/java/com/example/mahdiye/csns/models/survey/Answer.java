@@ -1,9 +1,11 @@
 package com.example.mahdiye.csns.models.survey;
 
+import java.io.Serializable;
+
 /**
  * Created by Mahdiye on 5/11/2016.
  */
-public class Answer {
+public class Answer implements Serializable{
     /*protected Long id;
     protected int index;
     protected AnswerSection section;

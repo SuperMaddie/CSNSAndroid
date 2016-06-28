@@ -19,8 +19,11 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.example.mahdiye.csns.data.CSNSContract;
+import com.example.mahdiye.csns.models.survey.Survey;
 import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
 import com.example.mahdiye.csns.utils.SurveyUtils;
+
+import java.util.Calendar;
 
 /**
  * A placeholder fragment containing a simple view.
@@ -89,8 +92,11 @@ public class SurveyActivityFragment extends Fragment implements LoaderManager.Lo
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
                 if (cursor != null) {
+                    Survey survey = SurveyUtils.getSurveyFromCursor(cursor);
+                    SharedPreferencesUtil.setSharedValues("survey", SurveyUtils.getSurveyJson(survey), getActivity());
+
                     Intent intent = new Intent(getActivity(), SurveyDescriptionActivity.class);
-                    intent.putExtra("survey", SurveyUtils.getSurveyFromCursor(cursor));
+                    intent.putExtra("survey", survey);
                     startActivity(intent);
                 }
             }
@@ -114,15 +120,19 @@ public class SurveyActivityFragment extends Fragment implements LoaderManager.Lo
 
     @Override
     public Loader<Cursor> onCreateLoader(int i, Bundle bundle) {
-        // Sort order:  Ascending, by id.
-        String sortOrder = CSNSContract.SurveyEntry._ID + " ASC";
+        String sortOrder = CSNSContract.SurveyEntry.COLUMN_PUBLISH_DATE + " DESC";
         Uri surveyUri = CSNSContract.SurveyEntry.CONTENT_URI;
 
-        return new CursorLoader(getActivity(),
+        /* get open surveys only */
+        String selection = CSNSContract.SurveyEntry.COLUMN_DELETED + " = ? AND " + CSNSContract.SurveyEntry.COLUMN_CLOSE_DATE + " > ?";
+        String[] selectionArgs = new String[]{Long.toString(0), Long.toString(Calendar.getInstance().getTimeInMillis())};
+
+        return new CursorLoader(
+                getActivity(),
                 surveyUri,
                 SURVEY_COLUMNS,
-                null,
-                null,
+                selection,
+                selectionArgs,
                 sortOrder);
     }
 

@@ -66,6 +66,7 @@ public class SurveyDescriptionActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
             View rootView = inflater.inflate(R.layout.fragment_survey_description, container, false);
+            TextView titleTextView = (TextView)rootView.findViewById(R.id.survey_description_survey_title_textview);
             TextView descriptionTextView = (TextView)rootView.findViewById(R.id.textview_survey_description);
             Button startSurveyButton = (Button)rootView.findViewById(R.id.button_start_survey);
 
@@ -73,6 +74,7 @@ public class SurveyDescriptionActivity extends AppCompatActivity {
 
             if(intent != null && intent.hasExtra("survey")) {
                 Survey survey = (Survey) intent.getSerializableExtra("survey");
+                titleTextView.setText(survey.getName());
                 descriptionTextView.setText(survey.getQuestionSheet().getDescription());
             }
 
