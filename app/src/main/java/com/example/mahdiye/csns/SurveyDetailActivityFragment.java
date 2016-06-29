@@ -280,10 +280,14 @@ public class SurveyDetailActivityFragment extends Fragment {
         public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
             rootView = inflater.inflate(R.layout.sub_fragment_survey_detail, container, false);
 
+            TextView descriptionTextView = (TextView) rootView.findViewById(R.id.section_description_textview);
+
             ListView listView = (ListView) rootView.findViewById(R.id.survey_detail_questions_listview);
             listView.setItemsCanFocus(true);
 
             QuestionSection questionSection = survey.getQuestionSheet().getSections().get(position);
+            descriptionTextView.setText(Html.fromHtml(questionSection.getDescription()));
+
             AnswerSection answerSection = null;
             List<Answer> answers = null;
             if(tempResponse != null){

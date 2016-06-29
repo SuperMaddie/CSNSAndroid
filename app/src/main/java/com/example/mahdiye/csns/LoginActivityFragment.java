@@ -2,7 +2,6 @@ package com.example.mahdiye.csns;
 
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.PorterDuff;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -56,12 +55,12 @@ public class LoginActivityFragment extends Fragment {
             public boolean onTouch(View v, MotionEvent event) {
                 switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN: {
-                        v.getBackground().setColorFilter(getResources().getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
+                        //v.getBackground().setColorFilter(getResources().getColor(R.color.colorPrimaryDark), PorterDuff.Mode.SRC_ATOP);
                         v.invalidate();
                         break;
                     }
                     case MotionEvent.ACTION_UP: {
-                        v.getBackground().clearColorFilter();
+                        //v.getBackground().clearColorFilter();
                         v.invalidate();
                         break;
                     }
@@ -73,6 +72,8 @@ public class LoginActivityFragment extends Fragment {
         loginButton.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
+                loginButton.setAlpha(.5f);
+                loginButton.setEnabled(false);
                 usernameEditText = (EditText)rootView.findViewById(R.id.edittext_username);
                 passwordEditText = (EditText)rootView.findViewById(R.id.edittext_password);
                 String username = usernameEditText.getText().toString();
@@ -157,7 +158,6 @@ public class LoginActivityFragment extends Fragment {
                             alert.setPositiveButton("OK",
                                 new DialogInterface.OnClickListener() {
                                     public void onClick(DialogInterface dialog, int which) {
-
                                     }
                                 });
                         }
@@ -185,6 +185,9 @@ public class LoginActivityFragment extends Fragment {
         @Override
         protected void onPostExecute(String token) {
             //linearLayoutHeaderProgress.setVisibility(View.GONE);
+            loginButton.setAlpha(1.f);
+            loginButton.setEnabled(true);
+
             if(token != null) {
                 saveUserToken(token);
                 startMainActivity();

@@ -4,17 +4,17 @@
     android:layout_height="match_parent">
 
     <TextView
-        android:id="@+id/section_description"
+        android:id="@+id/section_description_textview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="5dp"
-        android:minHeight="30dp"
-        android:textSize="16sp" />
+        android:textSize="18sp" />
 
     <ListView
         android:id="@+id/survey_detail_questions_listview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:descendantFocusability="beforeDescendants" />
+        android:descendantFocusability="beforeDescendants"
+        android:layout_marginTop="5dp"/>
 
 </LinearLayout>
