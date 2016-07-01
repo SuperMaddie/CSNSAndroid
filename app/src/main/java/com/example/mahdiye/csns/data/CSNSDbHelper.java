@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class CSNSDbHelper  extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 22;
+    private static final int DATABASE_VERSION = 24;
 
     static final String DATABASE_NAME = "csns.db";
 
@@ -24,12 +24,13 @@ public class CSNSDbHelper  extends SQLiteOpenHelper {
                 CSNSContract.SurveyEntry.COLUMN_PUBLISH_DATE + " INTEGER NOT NULL, " +
                 CSNSContract.SurveyEntry.COLUMN_CLOSE_DATE + " INTEGER NOT NULL, " +
                 CSNSContract.SurveyEntry.COLUMN_DELETED + " INTEGER NOT NULL, " +
-                CSNSContract.SurveyEntry.COLUMN_SURVEY_JSON + " TEXT, " +
+                CSNSContract.SurveyEntry.COLUMN_TYPE + " TEXT NOT NULL, " +
+                CSNSContract.SurveyEntry.COLUMN_SURVEY_JSON + " TEXT NOT NULL, " +
                 " UNIQUE (" + CSNSContract.SurveyEntry._ID + ") ON CONFLICT REPLACE);";
 
         final String SQL_CREATE_SURVEY_RESPONSE_TABLE = "CREATE TABLE " + CSNSContract.SurveyResponseEntry.TABLE_NAME +
                 " (" + CSNSContract.SurveyResponseEntry._ID + " INTEGER PRIMARY KEY, " +
-                CSNSContract.SurveyResponseEntry.COLUMN_SURVEY_RESPONSE_JSON + " TEXT, " +
+                CSNSContract.SurveyResponseEntry.COLUMN_SURVEY_RESPONSE_JSON + " TEXT NOT NULL, " +
 
                 " UNIQUE (" + CSNSContract.SurveyResponseEntry._ID + ") ON CONFLICT REPLACE);";
 

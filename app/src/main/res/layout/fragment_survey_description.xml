@@ -9,22 +9,52 @@
     tools:context="com.example.mahdiye.csns.SurveyDescriptionActivity$SurveyDescriptionActivityFragment"
     tools:showIn="@layout/activity_survey_description">
 
-    <TextView
-        android:id="@+id/survey_description_survey_title_textview"
+    <LinearLayout
+        android:id="@+id/survey_description_inner_linear_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:minHeight="30dp"
-        android:textSize="18sp"
-        android:textStyle="bold" />
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/survey_description_survey_title_textview"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="left"
+            android:layout_weight=".80"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <LinearLayout
+            android:id="@+id/linear_layout_image_button_wrapper"
+            android:text="right"
+            android:layout_weight=".20"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content">
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                />
+            <ImageButton
+                android:id="@+id/imagebutton_survey_description_type_hint"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:src="@drawable/info"
+                android:scaleType="fitCenter"
+                android:adjustViewBounds="true"/>
+        </LinearLayout>
+
+    </LinearLayout>
+
 
     <TextView
         android:id="@+id/textview_survey_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/survey_description_survey_title_textview"
+        android:layout_below="@+id/survey_description_inner_linear_layout"
         android:layout_marginTop="5dp"
         android:minHeight="30dp"
         android:textSize="16sp" />
+
 
     <Button
         android:id="@+id/button_start_survey"

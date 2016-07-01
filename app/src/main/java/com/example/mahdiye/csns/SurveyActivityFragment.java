@@ -1,5 +1,6 @@
 package com.example.mahdiye.csns;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
@@ -17,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.example.mahdiye.csns.data.CSNSContract;
 import com.example.mahdiye.csns.models.survey.Survey;
@@ -38,8 +40,10 @@ public class SurveyActivityFragment extends Fragment implements LoaderManager.Lo
     public static final int COL_SURVEY_ID = 0;
     public static final int COL_SURVEY_JSON = 1;
 
-    static String DEPT = "cs";
-    static String TOKEN;
+    private String DEPT;
+    private String TOKEN;
+
+    public static Activity surveyActivity;
 
     SurveyAdapter surveyAdapter;
 
@@ -50,25 +54,36 @@ public class SurveyActivityFragment extends Fragment implements LoaderManager.Lo
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        DEPT = getActivity().getString(R.string.department);
+        TOKEN = SharedPreferencesUtil.getSharedValues(getString(R.string.user_token_key), getActivity());
+        surveyActivity = getActivity();
     }
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.menu_main, menu);
+        inflater.inflate(R.menu.menu_survey, menu);
+        MenuItem logout = menu.findItem(R.id.action_logout);
+        MenuItem login = menu.findItem(R.id.action_login);
+        if(TOKEN == null){
+            logout.setVisible(false);
+            getActivity().invalidateOptionsMenu();
+        }else{
+            login.setVisible(false);
+            getActivity().invalidateOptionsMenu();
+        }
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        if (id == R.id.action_about) {
+        if (id == R.id.action_login) {
+            startLoginActivity();
             return true;
         }
         if (id == R.id.action_logout) {
             SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), null, getActivity());
-            startLoginActivity();
+            startMainActivity();
+            getActivity().finish();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -93,11 +108,21 @@ public class SurveyActivityFragment extends Fragment implements LoaderManager.Lo
                 Cursor cursor = (Cursor) parent.getItemAtPosition(position);
                 if (cursor != null) {
                     Survey survey = SurveyUtils.getSurveyFromCursor(cursor);
+                    if(survey.getType().equals(Survey.SurveyType.TYPE_RECORDED)){
+                        Cursor responseCursor = getResponseCursor(survey.getId());
+                        if(responseCursor.moveToFirst()){
+                            Toast.makeText(getActivity(), R.string.survey_recorded_type_prevent_fill,
+                                    Toast.LENGTH_LONG).show();
+                            responseCursor.close();
+                            return;
+                        }
+                    }
                     SharedPreferencesUtil.setSharedValues("survey", SurveyUtils.getSurveyJson(survey), getActivity());
 
                     Intent intent = new Intent(getActivity(), SurveyDescriptionActivity.class);
                     intent.putExtra("survey", survey);
                     startActivity(intent);
+
                 }
             }
         });
@@ -127,6 +152,21 @@ public class SurveyActivityFragment extends Fragment implements LoaderManager.Lo
         String selection = CSNSContract.SurveyEntry.COLUMN_DELETED + " = ? AND " + CSNSContract.SurveyEntry.COLUMN_CLOSE_DATE + " > ?";
         String[] selectionArgs = new String[]{Long.toString(0), Long.toString(Calendar.getInstance().getTimeInMillis())};
 
+        String anonymousSelection = CSNSContract.SurveyEntry.COLUMN_DELETED + " = ? AND " + CSNSContract.SurveyEntry.COLUMN_CLOSE_DATE +
+                " > ? AND " + CSNSContract.SurveyEntry.COLUMN_TYPE + " = ?";
+        String[] anonymousSelectionArgs = new String[]{Long.toString(0), Long.toString(Calendar.getInstance().getTimeInMillis()),
+                Survey.SurveyType.TYPE_ANONYMOUS};
+
+        if(TOKEN == null){
+            return new CursorLoader(
+                    getActivity(),
+                    surveyUri,
+                    SURVEY_COLUMNS,
+                    anonymousSelection,
+                    anonymousSelectionArgs,
+                    sortOrder);
+        }
+
         return new CursorLoader(
                 getActivity(),
                 surveyUri,
@@ -153,7 +193,25 @@ public class SurveyActivityFragment extends Fragment implements LoaderManager.Lo
 
     public void startLoginActivity(){
         Intent intent = new Intent(getActivity(), LoginActivity.class);
+        intent.putExtra(getString(R.string.source_activity), LoginActivity.SourceActivity.SURVEY);
         startActivity(intent);
     }
 
+    private void startMainActivity() {
+        Intent intent = new Intent(getActivity(), MainActivity.class);
+        startActivity(intent);
+        getActivity().finish();
+    }
+
+    Cursor getResponseCursor(Long id){
+        Cursor responseCursor = null;
+        responseCursor = getActivity().getContentResolver().query(
+                CSNSContract.SurveyResponseEntry.CONTENT_URI,
+                null,
+                CSNSContract.SurveyResponseEntry._ID + " = ?",
+                new String[]{id.toString()},
+                null);
+
+        return  responseCursor;
+    }
 }

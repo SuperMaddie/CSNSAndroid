@@ -35,6 +35,7 @@ public class LoginActivityFragment extends Fragment {
     EditText usernameEditText;
     EditText passwordEditText;
     Button loginButton;
+    int sourceActivity;
 
     public LoginActivityFragment() {
     }
@@ -42,6 +43,11 @@ public class LoginActivityFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        Intent intent = getActivity().getIntent();
+        if(intent != null && intent.hasExtra(getString(R.string.source_activity))){
+            sourceActivity = intent.getIntExtra(getString(R.string.source_activity), LoginActivity.SourceActivity.MAIN);
+        }
     }
 
     @Override
@@ -89,12 +95,6 @@ public class LoginActivityFragment extends Fragment {
         });
 
         return rootView;
-    }
-
-    private void startMainActivity() {
-        Intent intent = new Intent(getActivity(), MainActivity.class);
-        startActivity(intent);
-        getActivity().finish();
     }
 
     public void validateUser(String username, String password) {
@@ -190,7 +190,22 @@ public class LoginActivityFragment extends Fragment {
 
             if(token != null) {
                 saveUserToken(token);
-                startMainActivity();
+                if(sourceActivity == LoginActivity.SourceActivity.MAIN) {
+                    /* kill old version of main activity and start a new one */
+                    finishMainActivity();
+                    startMainActivity();
+                }else if(sourceActivity == LoginActivity.SourceActivity.SURVEY){
+                    /* finish the activity and it's parents redirect to main */
+                    finishMainActivity();
+                    finishSurveyActivity();
+                    startMainActivity();
+                }else if(sourceActivity == LoginActivity.SourceActivity.SURVEY_DECRIPTION){
+                    /* finish the activity and it's parents redirect to main */
+                    finishMainActivity();
+                    finishSurveyActivity();
+                    finishSurveyDescriptionActivity();
+                    startMainActivity();
+                }
             }else {
                 Log.e(LOG_TAG, "User is not valid");
             }
@@ -198,6 +213,30 @@ public class LoginActivityFragment extends Fragment {
 
         public void saveUserToken(String token){
             SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), token, getContext());
+        }
+
+        public void finishMainActivity(){
+            MainActivity.mainActivity.finish();
+        }
+
+        private void startMainActivity() {
+            Intent intent = new Intent(getActivity(), MainActivity.class);
+            startActivity(intent);
+            getActivity().finish();
+        }
+
+        public void finishSurveyActivity(){
+            SurveyActivityFragment.surveyActivity.finish();
+        }
+
+        public void finishSurveyDescriptionActivity(){
+            SurveyDescriptionActivity.SurveyDescriptionActivityFragment.surveyDescriptionActivity.finish();
+        }
+
+        private void startSurveyActivity() {
+            Intent intent = new Intent(getActivity(), SurveyActivity.class);
+            startActivity(intent);
+            getActivity().finish();
         }
 
     }

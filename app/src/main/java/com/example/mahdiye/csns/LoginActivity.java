@@ -14,4 +14,9 @@ public class LoginActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
     }
 
+    public class SourceActivity{
+        public static final int MAIN = 0;
+        public static final int SURVEY = 1;
+        public static final int SURVEY_DECRIPTION = 2;
+    }
 }

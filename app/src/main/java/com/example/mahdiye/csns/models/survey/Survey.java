@@ -92,4 +92,10 @@ public class Survey implements Serializable {
     public String toString(){
         return name;
     }
+
+    public static class SurveyType{
+        public static final String TYPE_ANONYMOUS = "ANONYMOUS";
+        public static final String TYPE_RECORDED = "RECORDED";
+        public static final String TYPE_NAMED = "NAMED";
+    }
 }

@@ -14,7 +14,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
@@ -68,7 +67,7 @@ import java.util.TreeSet;
 /**
  * A placeholder fragment containing a simple view.
  */
-public class SurveyDetailActivityFragment extends Fragment {
+public class SurveyDetailActivityFragment extends Fragment implements Serializable{
 
     final String LOG_TAG = SurveyDetailActivityFragment.class.getSimpleName();
     private static Survey survey;
@@ -76,10 +75,13 @@ public class SurveyDetailActivityFragment extends Fragment {
     private static SurveyResponse tempResponse;
     private static View rootView;
     private static ViewPager pager;
-    private List<ImageView> dots;
+    private transient List<ImageView> dots;
     private static int sectionsCount = 0;
     private boolean lastPageSeen = false;
     private Context context;
+
+    private String DEPT;
+    private String TOKEN;
 
     public SurveyDetailActivityFragment() {
     }
@@ -90,20 +92,28 @@ public class SurveyDetailActivityFragment extends Fragment {
         setHasOptionsMenu(true);
 
         context = getActivity();
+        DEPT = getActivity().getString(R.string.department);
+        TOKEN = SharedPreferencesUtil.getSharedValues(getString(R.string.user_token_key), getActivity());
+        response = null;
 
         /* set sections count for pager*/
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra("survey")) {
             survey = (Survey) intent.getSerializableExtra("survey");
             sectionsCount = survey.getQuestionSheet().getSections().size();
+            if(sectionsCount < 2){
+                lastPageSeen = true;
+            }
         }
 
-        /* get response from db if exists */
-        Cursor cursor = getResponseCursor(survey.getId());
-        if(cursor.moveToFirst()) {
-            response = SurveyUtils.getSurveyResponseFromCursor(cursor);
-            cursor.close();
-            lastPageSeen = true;
+        /* get response from db if exists and if survey is not anonymous */
+        if(!survey.getType().equals(Survey.SurveyType.TYPE_ANONYMOUS)) {
+            Cursor cursor = getResponseCursor(survey.getId());
+            if (cursor.moveToFirst()) {
+                response = SurveyUtils.getSurveyResponseFromCursor(cursor);
+                cursor.close();
+                lastPageSeen = true;
+            }
         }
     }
 
@@ -122,14 +132,6 @@ public class SurveyDetailActivityFragment extends Fragment {
         }
     }
 
-    /*@Override
-    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
-        super.onViewStateRestored(savedInstanceState);
-        if(savedInstanceState!= null && savedInstanceState.containsKey("tempResponse")){
-            tempResponse = (SurveyResponse) savedInstanceState.getSerializable("tempResponse");
-        }
-    }*/
-
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
         inflater.inflate(R.menu.menu_survey_detail, menu);
@@ -147,7 +149,7 @@ public class SurveyDetailActivityFragment extends Fragment {
             }
 
             final String TOKEN = SharedPreferencesUtil.getSharedValues(getString(R.string.user_token_key), getActivity());
-            String DEPT = "cs";
+            String DEPT = getActivity().getString(R.string.department);
             boolean responseValid = submitSurvey(DEPT, TOKEN);
             if(responseValid) {
                 Intent intent = new Intent(getActivity(), SurveyActivity.class);
@@ -163,7 +165,7 @@ public class SurveyDetailActivityFragment extends Fragment {
         getActivity().runOnUiThread(new Runnable() {
             public void run() {
             AlertDialog.Builder alert  = new AlertDialog.Builder(getActivity());
-            alert.setMessage(message);
+            alert.setMessage(Html.fromHtml(message));
             alert.setPositiveButton("OK", null);
             alert.setCancelable(true);
             alert.create().show();
@@ -186,8 +188,10 @@ public class SurveyDetailActivityFragment extends Fragment {
         pager = (ViewPager)rootView.findViewById(R.id.viewpager_questions);
         pager.setAdapter(new MyPagerAdapter(getChildFragmentManager()));
         //pager.setPageTransformer(true, new RotateUpTransformer());
-        addDots();
-        selectDot(0);
+        if(sectionsCount > 1) {
+            addDots();
+            selectDot(0);
+        }
 
         ((SurveyDetailActivity)getActivity()).setActionBarTitle("Page " + (1) + " of " + sectionsCount);
 
@@ -221,32 +225,32 @@ public class SurveyDetailActivityFragment extends Fragment {
         @Override
         public Object instantiateItem(ViewGroup container, int pos) {
 
-            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+            /*FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
             FragmentTransaction fragmentTransaction = fragmentManager
-                    .beginTransaction();
+                    .beginTransaction();*/
 
             Fragment fragment = null;
-            if(getRegisteredFragment(pos) == null) {
+            //if(getRegisteredFragment(pos) == null) {
                 fragment = (Fragment) super.instantiateItem(container, pos);
-                registeredFragments.put(pos, fragment);
-            }else{
+                //registeredFragments.put(pos, fragment);
+            /*}else{
                 fragment = getRegisteredFragment(pos);
-            }
+            }*/
             return fragment;
         }
 
         @Override
         public Fragment getItem(int pos) {
-            if(getRegisteredFragment(pos) == null) {
-                Fragment fragment = new SubFragment();
-                Bundle bundle = new Bundle();
-                bundle.putInt("position", pos);
-                bundle.putSerializable("customAdapter", new MyCustomAdapter());
-                fragment.setArguments(bundle);
-                return fragment;
-            }else {
+            //if(getRegisteredFragment(pos) == null) {
+            Fragment fragment = new SubFragment();
+            Bundle bundle = new Bundle();
+            bundle.putInt("position", pos);
+            bundle.putSerializable("customAdapter", new MyCustomAdapter());
+            fragment.setArguments(bundle);
+            return fragment;
+            /*}else {
                 return getRegisteredFragment(pos);
-            }
+            }*/
         }
 
     }
@@ -330,17 +334,19 @@ public class SurveyDetailActivityFragment extends Fragment {
         dots = new ArrayList<>();
         LinearLayout dotsLayout = (LinearLayout)rootView.findViewById(R.id.viewpager_dots);
 
-        for(int i = 0; i < sectionsCount; i++) {
-            ImageView dot = new ImageView(getActivity());
-            dot.setImageDrawable(getResources().getDrawable(R.drawable.pager_dot_not_selected));
+        if(sectionsCount > 1) {
+            for (int i = 0; i < sectionsCount; i++) {
+                ImageView dot = new ImageView(getActivity());
+                dot.setImageDrawable(getResources().getDrawable(R.drawable.pager_dot_not_selected));
 
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(45, 45);
-            params.setMargins(10, 0, 10, 0);
-            dot.setLayoutParams(params);
+                LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(45, 45);
+                params.setMargins(10, 0, 10, 0);
+                dot.setLayoutParams(params);
 
-            dotsLayout.addView(dot, params);
+                dotsLayout.addView(dot, params);
 
-            dots.add(dot);
+                dots.add(dot);
+            }
         }
 
         pager.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
@@ -397,20 +403,14 @@ public class SurveyDetailActivityFragment extends Fragment {
 
     public String getHint(int minSelections, int maxSelections, int numberOfChoices){
         String res = "";
-        String min = "";
-        String max = "";
-        if(minSelections > 0){
-            min = " at least " + minSelections;
+        if(minSelections == 1 && maxSelections == 1){
+            res = "<font color=" + context.getResources().getColor(R.color.colorPrimary) + ">&nbsp (Required) </font>";
+            return res;
         }
+
         if(maxSelections < numberOfChoices){
-            if(min != null) {
-                max = " and at most " + maxSelections;
-            }else{
-                max = " at most " + maxSelections;
-            }
-        }
-        if(!min.isEmpty() || !max.isEmpty()){
-            res = "(Please select " + min + max + " of the choices)";
+            res = "<font color=" + context.getResources().getColor(R.color.colorPrimary) + ">&nbsp (Please select between " + minSelections + " and "
+                    + maxSelections + " of the choices) </font>";
         }
         return res;
     }
@@ -432,7 +432,7 @@ public class SurveyDetailActivityFragment extends Fragment {
 
         private List<Question> mData = new ArrayList<>();
         private List<Answer> mAnswerData = new ArrayList<>();
-        private LayoutInflater mInflater;
+        private transient LayoutInflater mInflater;
 
         public MyCustomAdapter() {
             mInflater = (LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
@@ -487,15 +487,14 @@ public class SurveyDetailActivityFragment extends Fragment {
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             LinearLayout ll = null;
-            ChoiceViewHolder choiceViewHolder = null;
+            CheckViewHolder checkViewHolder = null;
+            RadioViewHolder radioViewHolder = null;
             TextViewHolder textViewHolder = null;
             int type = getItemViewType(position);
 
             switch (type) {
                 case TYPE_CHOICE: {
-                    choiceViewHolder = new ChoiceViewHolder();
                     ll = (LinearLayout) mInflater.inflate(R.layout.list_item_question_choice, null);
-                    TextView description = (TextView) ll.findViewById(R.id.survey_detail_question_description);
                     /* if question is of type choice set choices to visible one by one */
                     ChoiceQuestion question = (ChoiceQuestion) getItem(position);
                     ChoiceAnswer answer = null;
@@ -504,59 +503,72 @@ public class SurveyDetailActivityFragment extends Fragment {
                     }
 
                     CheckBox checkBox;
-                    RadioGroup radioGroup = new RadioGroup(context);
-                    radioGroup.setId((int)(long)question.getId());
                     RadioButton radioButton;
                     List<String> choices = question.getChoices();
                     if(getTypeOfChoice(question.getMinSelections(), question.getMaxSelections()) == ChoiceType.RADIO_BUTTON){
-                        for (int i = 0; i<choices.size(); i++) {
-                            radioButton = new RadioButton(context);
-                            String identifier = "survey_detail_radio_" + i;
-                            /* use radio button */
-                            radioButton.setId(createId(question.getId() , i));
-                            radioButton.setText(Html.fromHtml(choices.get(i)));
 
-                            if(answer != null && answer.getSelections().contains(i)){
-                                radioButton.setChecked(true);
-                            }
-                            radioGroup.addView(radioButton);
-                        }
+                        //if(convertView == null){
+                        radioViewHolder = new RadioViewHolder();
+                        RadioGroup radioGroup = new RadioGroup(context);
+                        radioGroup.setId((int)(long)question.getId());
                         ll.addView(radioGroup);
-                    }else if(getTypeOfChoice(question.getMinSelections(), question.getMaxSelections()) == ChoiceType.CHECK_BOX){
+
                         for (int i = 0; i<choices.size(); i++) {
+                            int id = createId(question.getId() , i);
+                            radioButton = new RadioButton(context);
+                            radioButton.setId(id);
+                            radioGroup.addView(radioButton);
+
+                            radioViewHolder.radioGroup = radioGroup;
+                            radioViewHolder.radioButton = radioButton;
+                            radioViewHolder.radioButton.setText(Html.fromHtml(choices.get(i)));
+
+                            /*if user has selected the choice before perform click it */
+                            if(answer != null && answer.getSelections().contains(i)){
+                                radioViewHolder.radioButton.setChecked(true);
+                            }
+
+                        }
+                        convertView = ll;
+                        convertView.setTag(radioViewHolder);
+                        /*}
+                        else {
+                            radioViewHolder = (RadioViewHolder) convertView.getTag();
+                        }*/
+
+                        radioViewHolder.description = (TextView) ll.findViewById(R.id.survey_detail_question_description);
+                        radioViewHolder.description.setText(Html.fromHtml(question.getDescription().toString() +
+                            getHint(question.getMinSelections(), question.getMaxSelections(), question.getNumOfChoices())));
+                    }else if(getTypeOfChoice(question.getMinSelections(), question.getMaxSelections()) == ChoiceType.CHECK_BOX){
+                        //if(convertView == null){
+                        checkViewHolder = new CheckViewHolder();
+                        for (int i = 0; i<choices.size(); i++) {
+                            int id = createId(question.getId() , i);
                             checkBox = new CheckBox(context);
-                            String identifier = "survey_detail_checkbox_" + i;
-                            /* use radio button */
-                            checkBox.setId(createId(question.getId() , i));
-                            checkBox.setText(Html.fromHtml(choices.get(i)));
-
-                            if(answer != null && answer.getSelections().contains(i)){
-                                checkBox.setChecked(true);
-                            }
+                            checkBox.setId(id);
                             ll.addView(checkBox);
-                        }
-                    }
-                    description.setText(Html.fromHtml(getItem(position).getDescription().toString()));
-                    convertView = ll;
 
-                    /*for (int i = 0; i<choices.size(); i++) {
-                        String identifier = "survey_detail_checkbox_" + i;
-                        int id = getId(identifier);
-                        if(id > 0) {
-                            choiceViewHolder.checkbox = (CheckBox) ll.findViewById(id);
-                            choiceViewHolder.checkbox.setVisibility(View.VISIBLE);
-                            choiceViewHolder.checkbox.setText(Html.fromHtml(choices.get(i)));
+                            checkViewHolder.checkbox = checkBox;
+                            checkViewHolder.checkbox.setText(Html.fromHtml(choices.get(i)));
 
-                            *//* if user has selected the choice before perform click it *//*
+                            /*if user has selected the choice before perform click it */
                             if(answer != null && answer.getSelections().contains(i)){
-                                choiceViewHolder.checkbox.setChecked(true);
+                                checkViewHolder.checkbox.setChecked(true);
                             }
                         }
+                        convertView = ll;
+                        convertView.setTag(checkViewHolder);
+                        /*}
+                        else {
+                            checkViewHolder = (CheckViewHolder) convertView.getTag();
+                        }*/
+
+                        checkViewHolder.description = (TextView) ll.findViewById(R.id.survey_detail_question_description);
+                        checkViewHolder.description.setText(Html.fromHtml(question.getDescription().toString() +
+                                getHint(question.getMinSelections(), question.getMaxSelections(), question.getNumOfChoices())));
+
                     }
-                    choiceViewHolder.description = (TextView) ll.findViewById(R.id.survey_detail_question_description);
-                    choiceViewHolder.description.setText(Html.fromHtml(getItem(position).getDescription().toString()));
-                    convertView = ll;
-                    convertView.setTag(choiceViewHolder);*/
+
                     break;
                 }
                 case TYPE_TEXT: {
@@ -581,18 +593,23 @@ public class SurveyDetailActivityFragment extends Fragment {
                     break;
                 }
             }
-
             return convertView;
         }
 
-        public class TextViewHolder{
+        public class TextViewHolder implements Serializable{
             public TextView description;
             public EditText answerEditText;
         }
 
-        public class ChoiceViewHolder{
+        public class CheckViewHolder implements Serializable{
             public TextView description;
             public CheckBox checkbox;
+        }
+
+        public class RadioViewHolder implements Serializable{
+            public TextView description;
+            public RadioGroup radioGroup;
+            public RadioButton radioButton;
         }
     }
     /*----------------------------------------------------------*/
@@ -662,7 +679,9 @@ public class SurveyDetailActivityFragment extends Fragment {
         String errorToShow = validateAnswers(response);
         if(errorToShow.isEmpty()){
             /* save the respose locally */
-            saveResponse(response);
+            if(TOKEN != null) {
+                saveResponse(response);
+            }
             Toast.makeText(getActivity(), "Your response is successfully submitted.", Toast.LENGTH_SHORT).show();
 
             /* create answers json object  and send back to API */
@@ -670,7 +689,9 @@ public class SurveyDetailActivityFragment extends Fragment {
             String json = gson.toJson(response);
 
             Log.e("response", json);
-            Log.e("token", token);
+            if(token != null) {
+                Log.e("token", token);
+            }
             /* send response to API */
             SendResponseTask responseTask = new SendResponseTask();
             responseTask.execute(dept, token, json);
@@ -685,10 +706,10 @@ public class SurveyDetailActivityFragment extends Fragment {
     }
 
     public String validateAnswers(SurveyResponse response) {
-        /* check if response has no answers in it */
+
         List<AnswerSection> sections = response.getAnswerSheet().getSections();
         List<Question> questions;
-        boolean containsChoiceQuestion = false;
+        /*boolean containsChoiceQuestion = false;
 
         for(int i = 0; i<sections.size(); i++) {
             questions = survey.getQuestionSheet().getSections().get(i).getQuestions();
@@ -702,10 +723,10 @@ public class SurveyDetailActivityFragment extends Fragment {
             if(containsChoiceQuestion){
                 break;
             }
-        }
+        }*/
 
         /* if questions are all text question check to see if response is not empty*/
-        boolean allAnswersEmpty = true;
+        /*boolean allAnswersEmpty = true;
         if (!containsChoiceQuestion) {
             for (int i = 0; i < sections.size(); i++) {
                 List<Answer> answers = sections.get(i).getAnswers();
@@ -724,34 +745,35 @@ public class SurveyDetailActivityFragment extends Fragment {
             if (allAnswersEmpty) {
                 return "You can't submit an empty response.";
             }
-        } else {
-            for (int i = 0; i < sections.size(); i++) {
-                List<Answer> answers = sections.get(i).getAnswers();
-                questions = survey.getQuestionSheet().getSections().get(i).getQuestions();
+        } else {*/
+        for (int i = 0; i < sections.size(); i++) {
+            List<Answer> answers = sections.get(i).getAnswers();
+            questions = survey.getQuestionSheet().getSections().get(i).getQuestions();
 
-                for (int j = 0; j < questions.size(); j++) {
-                    Question question = questions.get(j);
-                    if (question instanceof ChoiceQuestion) {
-                        ChoiceQuestion choiceQuestion = (ChoiceQuestion) question;
+            for (int j = 0; j < questions.size(); j++) {
+                Question question = questions.get(j);
+                if (question instanceof ChoiceQuestion) {
+                    ChoiceQuestion choiceQuestion = (ChoiceQuestion) question;
 
-                        ChoiceAnswer choiceAnswer = (ChoiceAnswer) answers.get(j);
-                        if (getTypeOfChoice(choiceQuestion.getMinSelections(), choiceQuestion.getMaxSelections()) == ChoiceType.RADIO_BUTTON
-                                && choiceAnswer.getSelections().size() == 0) {
-                            return "It is required to answer question " + (j + 1) + " in page " + (i + 1);
-                        }else if(getTypeOfChoice(choiceQuestion.getMinSelections(), choiceQuestion.getMaxSelections()) == ChoiceType.CHECK_BOX){
-                            if (choiceAnswer.getSelections().size() > choiceQuestion.getMaxSelections()) {
-                                return "You can select at most " + choiceQuestion.getMaxSelections() + " choices in question "
-                                        + (j + 1) + " in page " + (i + 1);
-                            }
-                            if (choiceAnswer.getSelections().size() < choiceQuestion.getMinSelections()) {
-                                return "You must select at least " + choiceQuestion.getMinSelections() + " choices in question "
-                                        + (j + 1) + " in page " + (i + 1);
-                            }
+                    ChoiceAnswer choiceAnswer = (ChoiceAnswer) answers.get(j);
+                    if (getTypeOfChoice(choiceQuestion.getMinSelections(), choiceQuestion.getMaxSelections()) ==
+                            ChoiceType.RADIO_BUTTON && choiceAnswer.getSelections().size() == 0) {
+                        return "It is required to answer question " + (j + 1) + " in page " + (i + 1);
+                    }else if(getTypeOfChoice(choiceQuestion.getMinSelections(), choiceQuestion.getMaxSelections()) ==
+                            ChoiceType.CHECK_BOX){
+                        if (choiceAnswer.getSelections().size() > choiceQuestion.getMaxSelections()) {
+                            return "You can select at most " + choiceQuestion.getMaxSelections() + " choices in question "
+                                    + (j + 1) + " in page " + (i + 1);
+                        }
+                        if (choiceAnswer.getSelections().size() < choiceQuestion.getMinSelections()) {
+                            return "You must select at least " + choiceQuestion.getMinSelections() + " choices in question "
+                                    + (j + 1) + " in page " + (i + 1);
                         }
                     }
                 }
             }
         }
+        //}
         return "";
     }
 
@@ -760,16 +782,24 @@ public class SurveyDetailActivityFragment extends Fragment {
         protected String doInBackground(String... params) {
             HttpURLConnection connection = null;
             OutputStream os = null;
-            String res = "default value";
+            String res = null;
 
             try{
-                Uri buildUri = Uri.parse(BuildConfig.SURVEYS_BASE_URL + "/saveAnswers").buildUpon()
-                        .appendQueryParameter("dept", params[0]).build();
-
+                Uri buildUri = null;
+                if(TOKEN == null){
+                    buildUri = Uri.parse(BuildConfig.BASE_URL + "/anonymous/survey/saveAnswers").buildUpon()
+                            .appendQueryParameter("dept", params[0]).build();
+                }
+                else {
+                    buildUri = Uri.parse(BuildConfig.SURVEYS_BASE_URL + "/saveAnswers").buildUpon()
+                            .appendQueryParameter("dept", params[0]).build();
+                }
                 URL url = new URL(buildUri.toString());
 
                 connection = (HttpURLConnection)url.openConnection();
-                connection.setRequestProperty("Authorization", "Bearer " + params[1]);
+                if(TOKEN != null) {
+                    connection.setRequestProperty("Authorization", "Bearer " + params[1]);
+                }
                 connection.setRequestProperty("Content-Type","application/json");
                 connection.setRequestMethod("POST");
                 connection.connect();
@@ -806,7 +836,9 @@ public class SurveyDetailActivityFragment extends Fragment {
 
         @Override
         protected void onPostExecute(String s) {
-            Log.e(LOG_TAG, s);
+            if(s != null){
+                Log.e(LOG_TAG, s);
+            }
         }
     }
 

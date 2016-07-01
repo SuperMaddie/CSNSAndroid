@@ -1,5 +1,6 @@
 package com.example.mahdiye.csns;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,6 +24,8 @@ import java.util.Arrays;
 public class MainActivity extends AppCompatActivity {
 
     private Context context;
+    private String TOKEN;
+    public static Activity mainActivity;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,27 +33,40 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        TOKEN = SharedPreferencesUtil.getSharedValues(getString(R.string.user_token_key), this);
+        mainActivity = this;
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.menu_main, menu);
+
+        MenuItem logout = menu.findItem(R.id.action_logout);
+        MenuItem login = menu.findItem(R.id.action_login);
+        if(TOKEN == null){
+            logout.setVisible(false);
+            this.invalidateOptionsMenu();
+        }else{
+            login.setVisible(false);
+            this.invalidateOptionsMenu();
+        }
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
-        }
-        if (id == R.id.action_about) {
+        if (id == R.id.action_login) {
+            startLoginActivity();
             return true;
         }
         if (id == R.id.action_logout) {
             SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), null, this);
-            startLoginActivity();
+            /*startLoginActivity();
+            finish();*/
+            recreateActivity();
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -58,6 +74,13 @@ public class MainActivity extends AppCompatActivity {
 
     public void startLoginActivity(){
         Intent intent = new Intent(this, LoginActivity.class);
+        intent.putExtra(getString(R.string.source_activity), LoginActivity.SourceActivity.MAIN);
+        startActivity(intent);
+    }
+
+    public void recreateActivity(){
+        Intent intent = new Intent(this, MainActivity.class);
+        intent.putExtra(getString(R.string.source_activity), LoginActivity.SourceActivity.MAIN);
         startActivity(intent);
         finish();
     }
@@ -74,19 +97,12 @@ public class MainActivity extends AppCompatActivity {
         public View onCreateView(LayoutInflater inflater, ViewGroup container,
                                  Bundle savedInstanceState) {
 
-            /* check if user is logged in */
-            final String TOKEN = SharedPreferencesUtil.getSharedValues(getString(R.string.user_token_key), getActivity());
-
-            if(TOKEN == null) {
-                /* redirect user to login */
-                startLoginActivity();
-            }
+            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
             /* Create mock data for main view */
             String[] mainList = {"Surveys", "News", "Mailing Lists", "File Manager"};
-            mainArrayAdapter = new ArrayAdapter<String>(getActivity(), R.layout.list_item_main, R.id.main_listview_item, Arrays.asList(mainList));
+            mainArrayAdapter = new ArrayAdapter<>(getActivity(), R.layout.list_item_main, R.id.main_listview_item, Arrays.asList(mainList));
 
-            View rootView = inflater.inflate(R.layout.fragment_main, container, false);
             ListView listView = (ListView) rootView.findViewById(R.id.main_listview);
             listView.setAdapter(mainArrayAdapter);
 
@@ -110,12 +126,6 @@ public class MainActivity extends AppCompatActivity {
             });
 
             return rootView;
-        }
-
-        public void startLoginActivity(){
-            Intent intent = new Intent(getActivity(), LoginActivity.class);
-            startActivity(intent);
-            getActivity().finish();
         }
 
     }

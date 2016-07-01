@@ -23,6 +23,7 @@ public class CSNSContract {
         public static final String COLUMN_PUBLISH_DATE = "publish_date";
         public static final String COLUMN_CLOSE_DATE = "close_date";
         public static final String COLUMN_DELETED = "deleted";
+        public static final String COLUMN_TYPE = "type";
 
         public static final Uri CONTENT_URI = BASE_CONTENT_URI.buildUpon().appendPath(PATH_SURVEY).build();
         public static final String CONTENT_TYPE =

@@ -16,7 +16,6 @@
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -48,9 +47,10 @@
         </activity>
         <activity
             android:name=".LoginActivity"
-            android:noHistory="true"
             android:label="@string/title_activity_login"
-            android:theme="@style/AppTheme.NoActionBar" />
+            android:theme="@style/AppTheme.NoActionBar">
+        </activity>
+
         <provider
             android:authorities="com.example.mahdiye.csns"
             android:name=".data.CSNSProvider" />

@@ -23,6 +23,10 @@ android {
     }
 
     buildTypes.each {
+        it.buildConfigField 'String', 'BASE_URL', BaseUrl
+    }
+
+    buildTypes.each {
         it.buildConfigField 'String', 'LOGIN_BASE_URL', LoginBaseUrl
     }
 }

@@ -21,21 +21,6 @@ public class ChoiceAnswer extends Answer {
         selections = new HashSet<>();
     }
 
-    /*@Override
-    public int check()
-    {
-        int points = question.getPointValue();
-
-        Set<Integer> correctSelections = ((ChoiceQuestion) question).getCorrectSelections();
-
-        if( correctSelections.size() == 0 ) return 0;
-        if( correctSelections.size() != selections.size() ) return -points;
-        for( Integer selection : selections )
-            if( !correctSelections.contains( selection ) ) return -points;
-
-        return points;
-    }*/
-
     @Override
     public String toString()
     {

@@ -53,6 +53,7 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
         ContentValues surveyValues = new ContentValues();
         surveyValues.put(CSNSContract.SurveyEntry._ID, survey.getId());
         surveyValues.put(CSNSContract.SurveyEntry.COLUMN_SURVEY_JSON, SurveyUtils.getSurveyBytes(survey));
+        surveyValues.put(CSNSContract.SurveyEntry.COLUMN_TYPE, survey.getType());
         surveyValues.put(CSNSContract.SurveyEntry.COLUMN_DELETED, survey.isDeleted());
         surveyValues.put(CSNSContract.SurveyEntry.COLUMN_PUBLISH_DATE, survey.getPublishDate().getTimeInMillis());
         surveyValues.put(CSNSContract.SurveyEntry.COLUMN_CLOSE_DATE, survey.getCloseDate().getTimeInMillis());
@@ -187,7 +188,6 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
 
         /* get section indices */
         Map<Long, Integer> sectionIndices = new HashMap<>();
-
 
         Iterator iterator = sectionIndicesJsonObject.keys();
         while(iterator.hasNext()){
