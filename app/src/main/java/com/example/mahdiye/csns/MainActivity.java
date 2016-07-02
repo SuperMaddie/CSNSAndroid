@@ -1,7 +1,6 @@
 package com.example.mahdiye.csns;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -23,7 +22,6 @@ import java.util.Arrays;
 
 public class MainActivity extends AppCompatActivity {
 
-    private Context context;
     private String TOKEN;
     public static Activity mainActivity;
 
@@ -36,6 +34,15 @@ public class MainActivity extends AppCompatActivity {
 
         TOKEN = SharedPreferencesUtil.getSharedValues(getString(R.string.user_token_key), this);
         mainActivity = this;
+
+        /*IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(getString(R.string.logout_broadcast_action));
+        registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d("onReceive","Logout in progress");
+            }
+        }, intentFilter);*/
     }
 
     @Override
@@ -64,8 +71,7 @@ public class MainActivity extends AppCompatActivity {
         }
         if (id == R.id.action_logout) {
             SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), null, this);
-            /*startLoginActivity();
-            finish();*/
+
             recreateActivity();
             return true;
         }

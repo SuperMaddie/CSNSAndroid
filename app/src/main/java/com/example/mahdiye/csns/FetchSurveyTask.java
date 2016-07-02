@@ -14,7 +14,6 @@ import com.example.mahdiye.csns.models.survey.QuestionSection;
 import com.example.mahdiye.csns.models.survey.QuestionSheet;
 import com.example.mahdiye.csns.models.survey.Survey;
 import com.example.mahdiye.csns.models.survey.TextQuestion;
-import com.example.mahdiye.csns.utils.SharedPreferencesUtil;
 import com.example.mahdiye.csns.utils.SurveyUtils;
 
 import org.json.JSONArray;
@@ -103,7 +102,7 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
             URL url = new URL(buildUri.toString());
 
             connection = (HttpURLConnection)url.openConnection();
-            connection.setRequestProperty("Authorization", "Bearer " + params[1]);
+            // connection.setRequestProperty("Authorization", "Bearer " + params[1]);
             connection.setRequestMethod("GET");
             connection.connect();
 
@@ -132,7 +131,7 @@ public class FetchSurveyTask extends AsyncTask<String, Void, Void> {
                 }
 
             }else{
-                SharedPreferencesUtil.setSharedValues(mContext.getString(R.string.user_token_key), null, mContext);
+                Log.e(LOG_TAG, "HTTP returned with status " + status);
             }
         }catch(IOException e) {
             Log.e(LOG_TAG, "IO Exception Getting Surveys", e);

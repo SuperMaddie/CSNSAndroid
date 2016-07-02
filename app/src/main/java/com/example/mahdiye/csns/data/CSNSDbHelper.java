@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
  */
 public class CSNSDbHelper  extends SQLiteOpenHelper {
 
-    private static final int DATABASE_VERSION = 24;
+    private static final int DATABASE_VERSION = 25;
 
     static final String DATABASE_NAME = "csns.db";
 

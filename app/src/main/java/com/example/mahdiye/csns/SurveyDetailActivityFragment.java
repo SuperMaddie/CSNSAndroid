@@ -242,12 +242,12 @@ public class SurveyDetailActivityFragment extends Fragment implements Serializab
         @Override
         public Fragment getItem(int pos) {
             //if(getRegisteredFragment(pos) == null) {
-            Fragment fragment = new SubFragment();
-            Bundle bundle = new Bundle();
-            bundle.putInt("position", pos);
-            bundle.putSerializable("customAdapter", new MyCustomAdapter());
-            fragment.setArguments(bundle);
-            return fragment;
+                Fragment fragment = new SubFragment();
+                Bundle bundle = new Bundle();
+                bundle.putInt("position", pos);
+                bundle.putSerializable("customAdapter", new MyCustomAdapter());
+                fragment.setArguments(bundle);
+                return fragment;
             /*}else {
                 return getRegisteredFragment(pos);
             }*/
@@ -644,13 +644,14 @@ public class SurveyDetailActivityFragment extends Fragment implements Serializab
 
                     if(getTypeOfChoice(choiceQuestion.getMinSelections(), choiceQuestion.getMaxSelections()) == ChoiceType.RADIO_BUTTON) {
                         int radioButtonId = radioGroup.getCheckedRadioButtonId();
-                        View radioButton = radioGroup.findViewById(radioButtonId);
-                        int idx = radioGroup.indexOfChild(radioButton);
+                        if(radioButtonId != -1){
+                            View radioButton = radioGroup.findViewById(radioButtonId);
+                            int idx = radioGroup.indexOfChild(radioButton);
 
-                        answer.getSelections().add(idx);
+                            answer.getSelections().add(idx);
+                        }
                     } else if(getTypeOfChoice(choiceQuestion.getMinSelections(), choiceQuestion.getMaxSelections()) == ChoiceType.CHECK_BOX) {
                         for (int chIndex = 0; chIndex < choiceQuestion.getChoices().size(); chIndex++) {
-                            //String identifier = "survey_detail_checkbox_" + chIndex;
                             int identifier = createId(question.getId(), chIndex);
                             CheckBox checkbox = (CheckBox) itemView.findViewById(identifier);
                             if (checkbox.isChecked()) {
@@ -678,7 +679,7 @@ public class SurveyDetailActivityFragment extends Fragment implements Serializab
         /* check survey answers */
         String errorToShow = validateAnswers(response);
         if(errorToShow.isEmpty()){
-            /* save the respose locally */
+            /* if the user is not anonymous save the response locally */
             if(TOKEN != null) {
                 saveResponse(response);
             }
@@ -759,14 +760,11 @@ public class SurveyDetailActivityFragment extends Fragment implements Serializab
                     if (getTypeOfChoice(choiceQuestion.getMinSelections(), choiceQuestion.getMaxSelections()) ==
                             ChoiceType.RADIO_BUTTON && choiceAnswer.getSelections().size() == 0) {
                         return "It is required to answer question " + (j + 1) + " in page " + (i + 1);
-                    }else if(getTypeOfChoice(choiceQuestion.getMinSelections(), choiceQuestion.getMaxSelections()) ==
+                    }
+                    if(getTypeOfChoice(choiceQuestion.getMinSelections(), choiceQuestion.getMaxSelections()) ==
                             ChoiceType.CHECK_BOX){
-                        if (choiceAnswer.getSelections().size() > choiceQuestion.getMaxSelections()) {
-                            return "You can select at most " + choiceQuestion.getMaxSelections() + " choices in question "
-                                    + (j + 1) + " in page " + (i + 1);
-                        }
-                        if (choiceAnswer.getSelections().size() < choiceQuestion.getMinSelections()) {
-                            return "You must select at least " + choiceQuestion.getMinSelections() + " choices in question "
+                        if (choiceAnswer.getSelections().size() > choiceQuestion.getMaxSelections() || choiceAnswer.getSelections().size() < choiceQuestion.getMinSelections()) {
+                            return "Please select between " + choiceQuestion.getMinSelections() + " and " + choiceQuestion.getMaxSelections() + " of the choices for question "
                                     + (j + 1) + " in page " + (i + 1);
                         }
                     }

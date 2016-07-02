@@ -56,7 +56,17 @@ public class SurveyActivityFragment extends Fragment implements LoaderManager.Lo
         setHasOptionsMenu(true);
         DEPT = getActivity().getString(R.string.department);
         TOKEN = SharedPreferencesUtil.getSharedValues(getString(R.string.user_token_key), getActivity());
+
         surveyActivity = getActivity();
+
+        /*IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(getString(R.string.logout_broadcast_action));
+        getActivity().registerReceiver(new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d("onReceive","Logout in progress");
+            }
+        }, intentFilter);*/
     }
 
     @Override
@@ -82,6 +92,7 @@ public class SurveyActivityFragment extends Fragment implements LoaderManager.Lo
         }
         if (id == R.id.action_logout) {
             SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), null, getActivity());
+            SurveyUtils.finishMainActivity();
             startMainActivity();
             getActivity().finish();
             return true;

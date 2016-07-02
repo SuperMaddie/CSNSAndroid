@@ -212,6 +212,7 @@ public class LoginActivityFragment extends Fragment {
         }
 
         public void saveUserToken(String token){
+            SharedPreferencesUtil.setSharedValues("check", "check", getContext());
             SharedPreferencesUtil.setSharedValues(getString(R.string.user_token_key), token, getContext());
         }
 
@@ -230,7 +231,7 @@ public class LoginActivityFragment extends Fragment {
         }
 
         public void finishSurveyDescriptionActivity(){
-            SurveyDescriptionActivity.SurveyDescriptionActivityFragment.surveyDescriptionActivity.finish();
+            SurveyDescriptionActivityFragment.surveyDescriptionActivity.finish();
         }
 
         private void startSurveyActivity() {

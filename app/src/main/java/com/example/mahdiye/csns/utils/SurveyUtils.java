@@ -1,7 +1,10 @@
 package com.example.mahdiye.csns.utils;
 
+import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 
+import com.example.mahdiye.csns.MainActivity;
 import com.example.mahdiye.csns.SurveyActivityFragment;
 import com.example.mahdiye.csns.data.CSNSContract;
 import com.example.mahdiye.csns.models.survey.Survey;
@@ -183,4 +186,17 @@ public class SurveyUtils {
         return cal;
     }
 
+    public static void sendBroadcast(Context context, String action){
+        Intent broadcastIntent = new Intent();
+        broadcastIntent.setAction(action);
+        context.sendBroadcast(broadcastIntent);
+    }
+
+    public static void finishMainActivity(){
+        MainActivity.mainActivity.finish();
+    }
+
+    public static void finishSurveyActivity(){
+        SurveyActivityFragment.surveyActivity.finish();
+    }
 }

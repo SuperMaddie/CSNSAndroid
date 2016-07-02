@@ -18,4 +18,5 @@
     <string name="survey_info_named">This is a Named survey. A Named survey requires the users to log onto CSNS to take the survey. The system records the identity of the user for each survey response.</string>
     <string name="survey_info_recorded">This is a Recorded survey. A Recorded survey requires the users to log onto CSNS to take the survey, but the system only records whether a user has taken a survey or not.</string>
     <string name="survey_info_anonymous">This is an Anonymous survey. An Anonymous survey is open to the public, i.e. no CSNS account is required, and the system does not keep any information about the people who took the survey.</string>
+    <string name="logout_broadcast_action">com.package.ACTION_LOGOUT</string>
 </resources>
